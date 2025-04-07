@@ -1,0 +1,43 @@
+#version: '3.8'
+services:
+  bank-service:
+    build: ./bank-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb-bank
+      - mongodb-npci
+
+  npci-service:
+    build: ./npci-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mongodb-npci
+      - mongodb-bank
+
+  client:
+    build: ./client
+    ports:
+      - "8080:8080"
+    depends_on:
+      - bank-service
+      - npci-service
+
+  mongodb-bank:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_bank_data:/data/db
+
+  mongodb-npci:
+    image: mongo:latest
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_npci_data:/data/db
+
+volumes:
+  mongodb_bank_data:
+  mongodb_npci_data:

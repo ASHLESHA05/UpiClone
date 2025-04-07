@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Welcome, <span th:text="${user.name}"></span></h1>
+    <div class="dashboard-info">
+        <p>UPI ID: <span th:text="${user.upiId}"></span></p>
+        <p>Balance: <span th:text="${balance}"></span></p>
+    </div>
+    <h2>Transaction History</h2>
+    <ul class="transaction-list">
+        <li th:each="txn : ${transactions}" th:text="${txn.amount} + ' - ' + ${txn.status}"></li>
+    </ul>
+    <a th:href="@{/transaction(upiId=${user.upiId})}">Make Transaction</a>
+    <div class="qr-section">
+        <h2>Generate QR</h2>
+        <img th:src="@{/generateQr(upiId=${user.upiId})}" alt="QR Code">
+    </div>
+    <div class="qr-section">
+        <h2>Scan QR</h2>
+        <video id="video" width="300" height="200"></video>
+        <canvas id="canvas" hidden></canvas>
+        <button onclick="scanQR()">Scan</button>
+    </div>
+</div>
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => video.srcObject = stream);
+
+    function scanQR() {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code) {
+            window.location.href = '/transaction?upiId=' + document.querySelector('.dashboard-info span:nth-child(2)').textContent + '&receiverPhone=' + code.data.split('@')[0];
+        } else {
+            alert('No QR code detected');
+        }
+    }
+</script>
+</body>
+</html>

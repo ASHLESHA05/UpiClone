@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Transaction</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h1>Make Transaction</h1>
+    <form th:action="@{/transaction}" th:object="${transactionRequest}" method="post">
+        <input type="hidden" th:field="*{senderUpiId}" th:value="${senderUpiId}">
+        <label>
+            Receiver Phone:
+            <input type="text" th:field="*{receiverPhone}" placeholder="Enter receiver's phone">
+        </label>
+        <label>
+            Amount:
+            <input type="number" th:field="*{amount}" placeholder="Enter amount">
+        </label>
+        <label>
+            UPI PIN:
+            <input type="password" th:field="*{upiPin}" placeholder="Enter your PIN">
+        </label>
+        <button type="submit">Send</button>
+    </form>
+</div>
+</body>
+</html>

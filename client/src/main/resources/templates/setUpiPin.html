@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Set UPI PIN</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h1>Set UPI PIN</h1>
+    <p th:text="${message}"></p>
+    <form th:action="@{/setUpiPin}" th:object="${setUpiPinRequest}" method="post">
+        <input type="hidden" th:field="*{userId}">
+        <label>
+            OTP:
+            <input type="text" th:field="*{otp}" placeholder="Enter OTP from console">
+        </label>
+        <label>
+            UPI PIN:
+            <input type="password" th:field="*{upiPin}" placeholder="Enter 4-digit PIN">
+        </label>
+        <button type="submit">Set PIN</button>
+    </form>
+</div>
+</body>
+</html>

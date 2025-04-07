@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>UPI Clone</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h1>Welcome to UPI Clone</h1>
+    <a th:href="@{/signup}">Sign Up</a>
+    <form th:action="@{/dashboard}" method="get">
+        <label>
+            UPI ID:
+            <input type="text" name="upiId" placeholder="Enter your UPI ID">
+        </label>
+        <button type="submit">Login</button>
+    </form>
+</div>
+</body>
+</html>
