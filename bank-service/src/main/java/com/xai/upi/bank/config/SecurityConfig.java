@@ -1,42 +1,63 @@
 package com.xai.upi.bank.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import com.xai.upi.bank.services.*;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final String INTERNAL_TOKEN = "uyguyfgbsvbcug76t7632$%@^@t";
+    @Autowired
+    private UserDetailsService userDetailsService; // Custom service to load users
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(); // For password hashing
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
-                .addFilterBefore(requestHeaderAuthenticationFilter(), RequestHeaderAuthenticationFilter.class)
+                .csrf().disable() // Disable CSRF for simplicity (enable in production with proper config)
                 .authorizeRequests()
-                .antMatchers("/api/ipc/**").permitAll()
-                .antMatchers("/api/**").permitAll()
-                .anyRequest().denyAll();
+                .antMatchers("/", "/{bank}/login", "/{bank}/signup").permitAll() // Public pages
+                .antMatchers("/{bank}/dashboard").authenticated() // Protected dashboard
+                .anyRequest().denyAll() // Deny all other requests
+                .and()
+                .formLogin()
+                .loginPage("/{bank}/login") // Bank-specific login page
+                .loginProcessingUrl("/perform_login") // URL for form submission
+                .successHandler(bankSpecificSuccessHandler()) // Custom redirect logic
+                .failureUrl("/{bank}/login?error=true") // Redirect on failure
+                .usernameParameter("username") // Hidden field set by JS
+                .passwordParameter("password")
+                .and()
+                .logout()
+                .logoutUrl("/perform_logout")
+                .logoutSuccessUrl("/");
     }
 
-    private RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() throws Exception {
-        RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
-        filter.setPrincipalRequestHeader("X-Internal-Token");
-        filter.setCredentialsRequestHeader("X-Internal-Token");
-        filter.setExceptionIfHeaderMissing(true);
-        filter.setAuthenticationManager(authentication -> {
-            String token = (String) authentication.getCredentials();
-            if (INTERNAL_TOKEN.equals(token)) {
-                authentication.setAuthenticated(true);
-            } else {
-                throw new org.springframework.security.core.AuthenticationException("Invalid internal token") {};
-            }
-            return authentication;
-        });
-        return filter;
+    @Bean
+    public AuthenticationSuccessHandler bankSpecificSuccessHandler() {
+        return (request, response, authentication) -> {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            String bank = userDetails.getBank(); // Extract bank from authenticated user
+            response.sendRedirect("/" + bank + "/dashboard"); // Redirect to bank-specific dashboard
+        };
     }
 }

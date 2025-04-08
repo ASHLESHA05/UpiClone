@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api")
 public class BankController {
@@ -14,41 +16,87 @@ public class BankController {
     @Autowired
     private AccountRepository accountRepository;
 
-    // Public endpoint (optional, accessible if needed by Thymeleaf or external clients)
     @GetMapping("/account/{id}")
-    public ResponseEntity<Account> getAccount(@PathVariable String id) {
-        Account account = accountRepository.findById(id).orElseThrow(() -> new RuntimeException("Account not found"));
-        return ResponseEntity.ok(account);
+    public ResponseEntity<?> getAccount(@PathVariable String id) {
+        Optional<Account> accountOptional = accountRepository.findById(id);
+        if (accountOptional.isPresent()) {
+            return ResponseEntity.ok(accountOptional.get());
+        } else {
+            System.out.println("Account not found for ID (GET): " + id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Account with ID [%s] not found.", id));
+        }
     }
 
-    // IPC endpoints (internal use only)
     @PostMapping("/ipc/createAccount")
     public ResponseEntity<Account> createAccount(@RequestParam String bankName, @RequestParam String userId) {
-        Account account = new Account();
-        account.setBankName(bankName);
-        account.setAccountNumber("ACC" + System.currentTimeMillis());
-        account.setBalance(1000.0);
-        account.setUserId(userId);
-        accountRepository.save(account);
-        return ResponseEntity.ok(account);
+        try {
+            Account account = new Account();
+            account.setBankName(bankName);
+            account.setAccountNumber("ACC" + System.currentTimeMillis() + "_" + userId.substring(0, Math.min(userId.length(), 4)));
+            account.setBalance(1000.0);
+            account.setUserId(userId);
+            Account savedAccount = accountRepository.save(account);
+            System.out.println("Created account: " + savedAccount.getId() + " for user: " + userId);
+            return ResponseEntity.ok(savedAccount);
+        } catch (Exception e) {
+            System.out.println("\n\n=========== Error creating bank account ===========\n\n");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @PostMapping("/ipc/debit")
     public ResponseEntity<String> debit(@RequestParam String accountId, @RequestParam double amount) {
-        Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        if (amount <= 0) {
+            System.out.println("Attempted debit with non-positive amount: " + amount + " for account: " + accountId);
+            return ResponseEntity.badRequest().body("Debit amount must be positive.");
+        }
+        Optional<Account> accountOptional = accountRepository.findById(accountId);
+        if (!accountOptional.isPresent()) {
+            System.out.println("Account not found for ID (Debit): " + accountId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found");
+        }
+
+        Account account = accountOptional.get();
         if (account.getBalance() >= amount) {
             account.setBalance(account.getBalance() - amount);
-            accountRepository.save(account);
-            return ResponseEntity.ok("Debited successfully");
+            try {
+                accountRepository.save(account);
+                System.out.println("Debited " + amount + " from account: " + accountId + ". New balance: " + account.getBalance());
+                return ResponseEntity.ok("Debited successfully. New balance: " + account.getBalance());
+            } catch (Exception e) {
+                System.out.println("\n\n=========== Error saving account after debit ===========\n\n");
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save debit transaction");
+            }
+        } else {
+            System.out.println("Insufficient balance for debit. Account: " + accountId + ", Balance: " + account.getBalance() + ", Amount: " + amount);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Insufficient balance");
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Insufficient balance");
     }
 
     @PostMapping("/ipc/credit")
     public ResponseEntity<String> credit(@RequestParam String accountId, @RequestParam double amount) {
-        Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        if (amount <= 0) {
+            System.out.println("Attempted credit with non-positive amount: " + amount + " for account: " + accountId);
+            return ResponseEntity.badRequest().body("Credit amount must be positive.");
+        }
+        Optional<Account> accountOptional = accountRepository.findById(accountId);
+        if (!accountOptional.isPresent()) {
+            System.out.println("Account not found for ID (Credit): " + accountId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found");
+        }
+
+        Account account = accountOptional.get();
         account.setBalance(account.getBalance() + amount);
-        accountRepository.save(account);
-        return ResponseEntity.ok("Credited successfully");
+        try {
+            accountRepository.save(account);
+            System.out.println("Credited " + amount + " to account: " + accountId + ". New balance: " + account.getBalance());
+            return ResponseEntity.ok("Credited successfully. New balance: " + account.getBalance());
+        } catch (Exception e) {
+            System.out.println("\n\n=========== Error saving account after credit ===========\n\n");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save credit transaction");
+        }
     }
 }

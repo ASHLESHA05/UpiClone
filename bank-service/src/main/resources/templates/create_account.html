@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Account</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="bg-light">
+<div th:replace="fragments/navbar :: navbar(${bank})"></div>
+<div class="container mt-3">
+    <h2>Create Account in <span th:text="${bank}"></span></h2>
+    <form th:action="@{'/' + ${bank} + '/createAccount'}" method="post" class="card p-4">
+        <div class="form-group">
+            <label>Initial Amount</label>
+            <input type="number" name="initialAmount" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-dark">Create</button>
+    </form>
+</div>
+</body>
+</html>

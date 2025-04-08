@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="bg-light">
+<div th:replace="fragments/navbar :: navbar(${bank})"></div>
+<div class="container mt-3">
+    <h2>Admin Dashboard - <span th:text="${bank}"></span></h2>
+    <a th:href="@{'/' + ${bank} + '/admin/addEmployee'}" class="btn btn-dark mb-3">Add Employee</a>
+    <h3>All Accounts</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Account Number</th>
+            <th>Balance</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="account : ${accounts}">
+            <td th:text="${account.accountNumber}"></td>
+            <td th:text="${account.balance}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

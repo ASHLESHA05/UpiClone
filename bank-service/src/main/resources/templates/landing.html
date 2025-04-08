@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bank Selection</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+            url('/images/bank.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bank-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            color: white;
+        }
+
+        .bank-card h1 {
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #f8f9fa;
+        }
+
+        .custom-select {
+            font-size: 1.2rem;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            background-color: #fff;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-proceed {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            padding: 10px 25px;
+            border-radius: 30px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .btn-proceed:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="bank-card">
+    <img th:src="@{'/images/bank.jpg'}" alt="Bank Logo" class="bank-logo" onerror="this.style.display='none'">
+    <h1>Welcome to Banking Portal</h1>
+    <form id="bankForm">
+        <div class="form-group">
+            <select class="custom-select" name="bank" id="bankSelect" required>
+                <option value="" disabled selected>Select Your Bank</option>
+                <option value="sbb">State Bank of Baroda (SBB)</option>
+                <option value="camera">Camera Bank</option>
+                <option value="united">United Bank</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-proceed">Proceed</button>
+    </form>
+</div>
+<script>
+    document.getElementById('bankForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var bank = document.getElementById('bankSelect').value;
+        if (bank) {
+            window.location.href = '/' + bank;
+        }
+    });
+</script>
+</body>
+</html>

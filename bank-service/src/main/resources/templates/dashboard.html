@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="bg-light">
+
+<!-- Navbar Fragment -->
+<div th:replace="fragments/navbar :: navbar(${bank})"></div>
+
+<!-- Main Container -->
+<div class="container mt-3">
+
+    <!-- Admin Greeting -->
+    <div th:if="${user.role == 'ADMIN'}" class="alert alert-info">
+        Hello, Welcome back chief
+    </div>
+
+    <!-- General Welcome Message -->
+    <h2>Welcome, <span th:text="${user.name}"></span></h2>
+    <p>This is your dashboard for <span th:text="${bank}"></span>.</p>
+
+</div>
+
+</body>
+</html>

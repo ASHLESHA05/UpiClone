@@ -354,17 +354,25 @@ public class NPCIController {
 
 
             // --- 7. Check Sender Balance ---
+// --- 7. Check Sender Balance ---
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-Internal-Token", INTERNAL_TOKEN);
-            HttpEntity<String> entity = new HttpEntity<>(headers);
+            // You might not need the body for a GET, so HttpEntity<Void> or pass null body
+            HttpEntity<Void> entity = new HttpEntity<>(headers); // Use HttpEntity<Void> for GET
             String balanceUrl = "http://bank-service:8081/api/account/" + sender.getBankAccountId();
             Double balance = 0.0;
             try {
-                ResponseEntity<Map> balanceResponse = restTemplate.getForEntity(balanceUrl, Map.class);
+                // Use exchange instead of getForEntity to include headers
+                ResponseEntity<Map> balanceResponse = restTemplate.exchange(
+                        balanceUrl,
+                        HttpMethod.GET, // Specify GET method
+                        entity,         // Pass the entity with headers
+                        Map.class);     // Expected response type
+
+                // --- Process the response (same as before) ---
                 if (balanceResponse.getBody() == null || balanceResponse.getBody().get("balance") == null) {
                     System.out.println("\n\n=========== Bank service returned invalid balance response ===========\n\n");
-                    System.out.println("URL: " + balanceUrl);
-                    System.out.println("Response: " + balanceResponse);
+                    // ... (rest of the existing error handling)
                     transaction.setStatus("FAILED");
                     transactionRepository.save(transaction); // Update status
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Failed to retrieve sender balance"));
@@ -376,14 +384,16 @@ public class NPCIController {
                     transactionRepository.save(transaction);
                     return ResponseEntity.badRequest().body(Map.of("message", "Insufficient balance"));
                 }
+                // --- End of balance processing ---
+
             } catch (RestClientException e) {
                 System.out.println("\n\n=========== Error calling bank service for balance check ===========\n\n");
                 System.out.println("URL: " + balanceUrl);
-                e.printStackTrace();
+                e.printStackTrace(); // Keep this for debugging network/server issues
                 transaction.setStatus("FAILED");
                 transactionRepository.save(transaction);
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("message", "Failed to check balance with bank service"));
-            } catch (Exception e) { // Catch potential ClassCastException or NullPointerException
+            } catch (Exception e) { // Catch potential ClassCastException or NullPointerException processing balance
                 System.out.println("\n\n=========== Error processing balance response ===========\n\n");
                 System.out.println("URL: " + balanceUrl);
                 e.printStackTrace();

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${bank} + ' Home'">Bank Home</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-size: cover;
+            position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 0;
+        }
+
+        .center-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 50px 40px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            z-index: 1;
+            max-width: 500px;
+            width: 510px;
+            height: 400px;
+            max-height: 800px;
+            animation: fadeIn 1s ease-in-out;
+
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translate(-50%, -60%); }
+            100% { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        .center-card h1 {
+            color: #ffffff;
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .bank-logo {
+            max-height: 80px;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+        }
+
+        .btn-auth {
+            font-size: 1.1rem;
+            padding: 12px 30px;
+            margin: 12px 15px 0;
+            border-radius: 30px;
+            border: none;
+            color: #fff;
+            background: linear-gradient(135deg, #1d87f2, #0056b3);
+            box-shadow: 0 4px 15px rgba(5, 128, 255, 0.4);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .btn-auth:hover {
+            background: linear-gradient(135deg, #0056b3, #003d80);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 128, 255, 0.6);
+        }
+        .buttonsH{
+            margin-top: 80px;
+        }
+    </style>
+</head>
+<body th:style="'background: url(' + @{/images/${bank}_logo.png} + ') no-repeat center center fixed; background-size: cover;'">
+
+
+
+<div class="center-card">
+    <h1 th:text="${bank}">Bank Name</h1>
+    <img th:src="@{'/images/' + ${bank} + '_logo.png'}" alt="Bank Logo" class="bank-logo" onerror="this.style.display='none'">
+
+    <div class="buttonsH">
+        <a th:href="@{'/' + ${bank} + '/login'}" class="btn-auth">Login</a>
+        <a th:href="@{'/' + ${bank} + '/signup'}" class="btn-auth">Signup</a>
+    </div>
+</div>
+
+</body>
+</html>

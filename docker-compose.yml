@@ -8,21 +8,21 @@ services:
       - mongodb-bank
       - mongodb-npci
 
-  npci-service:
-    build: ./npci-service
-    ports:
-      - "8082:8082"
-    depends_on:
-      - mongodb-npci
-      - mongodb-bank
+#  npci-service:
+#    build: ./npci-service
+#    ports:
+#      - "8082:8082"
+#    depends_on:
+#      - mongodb-npci
+#      - mongodb-bank
 
-  client:
-    build: ./client
-    ports:
-      - "8080:8080"
-    depends_on:
-      - bank-service
-      - npci-service
+#  client:
+#    build: ./client
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - bank-service
+#      - npci-service
 
   mongodb-bank:
     image: mongo:latest
