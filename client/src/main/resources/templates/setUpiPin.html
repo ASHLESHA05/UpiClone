@@ -3,24 +3,26 @@
 <head>
     <title>Set UPI PIN</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
 <div class="container">
-    <h1>Set UPI PIN</h1>
-    <p th:text="${message}"></p>
+    <h1>Set Your UPI PIN</h1>
+    <p>Check console for OTP</p>
     <form th:action="@{/setUpiPin}" th:object="${setUpiPinRequest}" method="post">
         <input type="hidden" th:field="*{userId}">
-        <label>
-            OTP:
-            <input type="text" th:field="*{otp}" placeholder="Enter OTP from console">
-        </label>
-        <label>
-            UPI PIN:
-            <input type="password" th:field="*{upiPin}" placeholder="Enter 4-digit PIN">
-        </label>
+        <label>OTP: <input type="text" th:field="*{otp}" placeholder="Enter OTP" required></label>
+        <label>UPI PIN: <input type="password" th:field="*{upiPin}" placeholder="4-digit PIN" pattern="[0-9]{4}" required></label>
         <button type="submit">Set PIN</button>
     </form>
 </div>
+<script>
+    const error = /*[[${error}]]*/ null;
+    if (error) {
+        Toastify({ text: error, duration: 3000, gravity: "top", position: "right", backgroundColor: "#f44336" }).showToast();
+    }
+</script>
 </body>
 </html>

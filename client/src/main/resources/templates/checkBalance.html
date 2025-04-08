@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Result</title>
+    <title>Check Balance</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
@@ -9,9 +9,12 @@
 </head>
 <body>
 <div class="container">
-    <h1>Result</h1>
-    <p th:text="${message}"></p>
-    <a href="/dashboard" class="btn">Back to Dashboard</a>
+    <h1>Check Balance</h1>
+    <form th:action="@{/checkBalance}" method="post">
+        <input type="hidden" name="userId" th:value="${userId}">
+        <label>UPI PIN: <input type="password" name="upiPin" placeholder="Enter 4-digit PIN" required></label>
+        <button type="submit">Check</button>
+    </form>
 </div>
 <script>
     const error = /*[[${error}]]*/ null;

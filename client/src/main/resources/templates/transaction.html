@@ -1,29 +1,31 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Transaction</title>
+    <title>Make Payment</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
 <div class="container">
-    <h1>Make Transaction</h1>
+    <h1>Make Payment</h1>
     <form th:action="@{/transaction}" th:object="${transactionRequest}" method="post">
-        <input type="hidden" th:field="*{senderUpiId}" th:value="${senderUpiId}">
-        <label>
-            Receiver Phone:
-            <input type="text" th:field="*{receiverPhone}" placeholder="Enter receiver's phone">
-        </label>
-        <label>
-            Amount:
-            <input type="number" th:field="*{amount}" placeholder="Enter amount">
-        </label>
-        <label>
-            UPI PIN:
-            <input type="password" th:field="*{upiPin}" placeholder="Enter your PIN">
-        </label>
+        <input type="hidden" th:field="*{senderUpiId}">
+        <label>Recipient Phone: <input type="text" th:field="*{receiverPhone}" placeholder="Enter phone number" required></label>
+        <label>Amount: <input type="number" th:field="*{amount}" placeholder="Enter amount" required></label>
+        <label>UPI PIN: <input type="password" th:field="*{upiPin}" placeholder="Enter 4-digit PIN" required></label>
         <button type="submit">Send</button>
     </form>
 </div>
+<script>
+    const error = /*[[${error}]]*/ null;
+    if (error) {
+        Toastify({ text: error, duration: 3000, gravity: "top", position: "right", backgroundColor: "#f44336" }).showToast();
+        if (error === "User not found") {
+            document.querySelector('input[name="receiverPhone"]').value = '';
+        }
+    }
+</script>
 </body>
 </html>

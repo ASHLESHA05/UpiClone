@@ -17,6 +17,7 @@ public class User {
     private String bankAccountId;
     private String otp;
     private LocalDateTime otpGeneratedAt;
+    private String password;
     // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -38,4 +39,6 @@ public class User {
     public void setOtp(String otp) { this.otp = otp; }
     public LocalDateTime getOtpGeneratedAt() { return otpGeneratedAt; }
     public void setOtpGeneratedAt(LocalDateTime otpGeneratedAt) {this.otpGeneratedAt = otpGeneratedAt; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

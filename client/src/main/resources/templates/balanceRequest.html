@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>UPI Clone</title>
+    <title>Balance</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <div class="container">
-    <h1>Welcome to UPI Clone</h1>
-    <div class="options-grid">
-        <a href="/signup" class="btn">Sign Up</a>
-        <a href="/login" class="btn">Login</a>
-    </div>
+    <h1>Your Balance</h1>
+    <p>₹<span th:text="${balance}"></span></p>
+    <a href="/dashboard" class="btn">Back to Dashboard</a>
 </div>
 </body>
 </html>

@@ -1,39 +1,39 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="">
 <head>
     <title>Sign Up</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- ✅ Use UMD version -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
 <div class="container">
     <h1>Sign Up</h1>
     <form th:action="@{/signup}" th:object="${signupRequest}" method="post">
-        <label>
-            Name:
-            <input type="text" th:field="*{name}" placeholder="Enter your name">
-        </label>
-        <label>
-            Phone:
-            <input type="text" th:field="*{phone}" placeholder="Enter your phone number">
-        </label>
-        <label>
-            Email:
-            <input type="email" th:field="*{email}" placeholder="Enter your email">
-        </label>
-        <label>
-            Aadhar:
-            <input type="text" th:field="*{aadhar}" placeholder="Enter your Aadhar number">
-        </label>
-        <label>
-            Bank:
-            <select th:field="*{bankName}">
-                <option value="BankA">Bank A</option>
-                <option value="BankB">Bank B</option>
-            </select>
-        </label>
+        <label>Name: <input type="text" th:field="*{name}" placeholder="Enter your name" required></label>
+        <label>Phone: <input type="text" th:field="*{phone}" placeholder="10-digit phone" pattern="[0-9]{10}" required></label>
+        <label>Email: <input type="email" th:field="*{email}" placeholder="Enter your email" required></label>
+        <label>Password: <input type="password" th:field="*{password}" placeholder="Set a password" required></label>
+        <label>Aadhar: <input type="text" th:field="*{aadhar}" placeholder="12-digit Aadhar" pattern="[0-9]{12}" required></label>
         <button type="submit">Sign Up</button>
     </form>
 </div>
+
+<!-- ✅ Enable Thymeleaf inline JS -->
+<script th:inline="javascript">
+    const error = /*[[${error}]]*/ null;
+    if (error) {
+        Toastify({
+            text: error,
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#f44336"
+        }).showToast();
+    }
+</script>
 </body>
 </html>
