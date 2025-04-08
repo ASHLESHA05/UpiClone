@@ -10,7 +10,7 @@
 <body>
 <div class="container">
     <h1>Login</h1>
-    <form th:action="@{/login}" method="post">
+    <form th:action="@{/do-login}" method="post">
         <label>Email: <input type="email" name="email" placeholder="Enter your email" required></label>
         <label>Password: <input type="password" name="password" placeholder="Enter your password" required></label>
         <button type="submit">Login</button>
@@ -21,6 +21,15 @@
     if (error) {
         Toastify({ text: error, duration: 3000, gravity: "top", position: "right", backgroundColor: "#f44336" }).showToast();
     }
-</script>
+</script><!-- Optional: Show login error -->
+<div th:if="${param.error}">
+    Invalid username or password.
+</div>
+
+<!-- Optional: Logout message -->
+<div th:if="${param.logout}">
+    You have been logged out.
+</div>
+
 </body>
 </html>

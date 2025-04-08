@@ -65,12 +65,12 @@ public class ClientController {
     }
 
     // Login Form
-    @GetMapping("/login")
-    public String loginForm() {
-        return "login";
+    @GetMapping("/do-login")
+    public String showLoginPage() {
+        return "login"; // resolves to login.html
     }
 
-    @PostMapping("/login")
+    @PostMapping("/do-login")
     public String loginSubmit(@RequestParam String email, @RequestParam String password, HttpSession session, Model model) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Internal-Token", INTERNAL_TOKEN);

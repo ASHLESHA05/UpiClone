@@ -7,6 +7,90 @@
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .options-grid {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-card {
+            flex: 1;
+            padding: 1rem;
+            background-color: #f4f4f4;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .transaction-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .transaction-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .qr-section {
+            margin-top: 2rem;
+        }
+
+        .qr-scan-container {
+            margin-top: 10px;
+            position: relative;
+            display: none;
+        }
+
+        .qr-scan-container video {
+            width: 300px;
+            height: 200px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .qr-btns {
+            margin-top: 10px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -15,6 +99,7 @@
         <p>UPI ID: <span th:text="${user.upiId}"></span></p>
         <p>Balance: ₹<span th:text="${balance}"></span></p>
     </div>
+
     <div class="options-grid">
         <div class="option-card">
             <a th:href="@{/transaction}" class="btn">Make Payment</a>
@@ -26,23 +111,61 @@
             <a th:href="@{/generateQr}" class="btn">Generate QR</a>
         </div>
     </div>
+
     <h2>Transaction History</h2>
     <ul class="transaction-list">
         <li th:each="txn : ${transactions}" th:text="${txn.amount} + ' - ' + ${txn.status} + ' - ' + ${txn.timestamp}"></li>
     </ul>
+
     <div class="qr-section">
         <h2>Scan QR</h2>
-        <video id="video" width="300" height="200"></video>
-        <canvas id="canvas" hidden></canvas>
-        <button onclick="scanQR()">Scan</button>
+        <button onclick="startScan()">Start Scan</button>
+
+        <div class="qr-scan-container" id="qrContainer">
+            <button class="close-btn" onclick="stopScan()">✖</button>
+            <video id="video" autoplay></video>
+            <canvas id="canvas" hidden></canvas>
+
+            <div class="qr-btns">
+                <button onclick="scanQR()">Scan</button>
+            </div>
+        </div>
     </div>
 </div>
+
 <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(stream => video.srcObject = stream);
+    const qrContainer = document.getElementById('qrContainer');
+    let stream;
+
+    function startScan() {
+        qrContainer.style.display = 'block';
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(s => {
+                stream = s;
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+            })
+            .catch(err => {
+                Toastify({
+                    text: "Camera access denied: " + err.message,
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#f44336"
+                }).showToast();
+            });
+    }
+
+    function stopScan() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        qrContainer.style.display = 'none';
+    }
+
     function scanQR() {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -52,12 +175,25 @@
         if (code) {
             window.location.href = '/transaction?receiverPhone=' + code.data.split('@')[0];
         } else {
-            Toastify({ text: "No QR code detected", duration: 3000, gravity: "top", position: "right", backgroundColor: "#f44336" }).showToast();
+            Toastify({
+                text: "No QR code detected",
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#f44336"
+            }).showToast();
         }
     }
+
     const error = /*[[${error}]]*/ null;
     if (error) {
-        Toastify({ text: error, duration: 3000, gravity: "top", position: "right", backgroundColor: "#f44336" }).showToast();
+        Toastify({
+            text: error,
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#f44336"
+        }).showToast();
     }
 </script>
 </body>

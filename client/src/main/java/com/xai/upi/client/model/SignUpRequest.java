@@ -10,6 +10,7 @@ public class SignUpRequest {
     private String aadhar;
     private String bankName;
     private String password;
+    private String username;
 
     public String getPassword() {
         return this.password;
