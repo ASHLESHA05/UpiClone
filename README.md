@@ -1,7 +1,3 @@
-Below is a professional, beautiful, and well-structured README for your GitHub repository. It reflects your project as a UPI (Unified Payments Interface) clone with three Docker containers (`bank-service`, `npci-service`, and `client`), built using the MVC architecture and adhering to SOLID and GRASP principles. Since you’re running it with `clear && mvn clean install && docker compose up --build`, I’ve tailored the instructions accordingly.
-
----
-
 # UPI Clone
 
 ![UPI Clone Banner](https://ucarecdn.com/7cbf6f3f-7a09-4828-8b24-ab17f8a6c1b2/united_logo.png)  
