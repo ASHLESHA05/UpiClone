@@ -9,21 +9,32 @@
 <body class="bg-light">
 <div th:replace="fragments/navbar :: navbar(${bank})"></div>
 <div class="container mt-3">
-    <h2>Your Accounts in <span th:text="${bank}"></span></h2>
-    <div th:if="${account}">
-        <div class="card">
+    <!-- Heading changes based on role -->
+    <h2 th:if="${role == 'ADMIN'}">All Accounts in <span th:text="${bank}"></span></h2>
+    <h2 th:unless="${role == 'ADMIN'}">Your Accounts in <span th:text="${bank}"></span></h2>
+
+    <!-- ADMIN View: List all accounts -->
+    <div th:if="${role == 'ADMIN'}">
+        <div th:each="account : ${accounts}" class="card mb-2">
             <div class="card-body">
-                <p>Account Number: <span th:text="${account.accountNumber}"></span></p>
-                <p>Balance: <span th:text="${account.balance}"></span></p>
-                <p>CVV: <span th:text="${account.cvv}"></span></p>
-                <p>PIN: <span th:text="${account.pin != null ? 'Set' : 'Not Set'}"></span></p>
-                <a th:href="@{'/' + ${bank} + '/setPin'}" class="btn btn-dark">Set PIN</a>
+                <a th:href="@{'/' + ${bank} + '/account/' + ${account.id}}" th:text="${account.accountNumber}"></a>
             </div>
         </div>
     </div>
-    <div th:unless="${account}">
-        <p>No account found.</p>
-        <a th:href="@{'/' + ${bank} + '/createAccount'}" class="btn btn-dark">Create Account</a>
+
+    <!-- USER View: Show their own account or redirect option -->
+    <div th:unless="${role == 'ADMIN'}">
+        <div th:if="${account}">
+            <div class="card">
+                <div class="card-body">
+                    <a th:href="@{'/' + ${bank} + '/account/' + ${account.id}}" th:text="${account.accountNumber}"></a>
+                </div>
+            </div>
+        </div>
+        <div th:unless="${account}">
+            <p>No account found.</p>
+            <a th:href="@{'/' + ${bank} + '/createAccount'}" class="btn btn-dark">Create Account</a>
+        </div>
     </div>
 </div>
 </body>

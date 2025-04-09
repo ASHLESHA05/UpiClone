@@ -43,7 +43,6 @@
             height: 400px;
             max-height: 800px;
             animation: fadeIn 1s ease-in-out;
-
         }
 
         @keyframes fadeIn {
@@ -82,24 +81,45 @@
             transform: scale(1.05);
             box-shadow: 0 6px 20px rgba(0, 128, 255, 0.6);
         }
-        .buttonsH{
+
+        .buttonsH {
             margin-top: 80px;
         }
     </style>
 </head>
-<body th:style="'background: url(' + @{/images/${bank}_logo.png} + ') no-repeat center center fixed; background-size: cover;'">
 
+<body style="background: url('https://ucarecdn.com/1c4e1fe2-a754-4636-8f19-82ddc8473447/bank.jpg') no-repeat center center fixed; background-size: cover;">
 
 
 <div class="center-card">
     <h1 th:text="${bank}">Bank Name</h1>
-    <img th:src="@{'/images/' + ${bank} + '_logo.png'}" alt="Bank Logo" class="bank-logo" onerror="this.style.display='none'">
+
+    <!-- Placeholder for logo -->
+    <img id="bankLogo" alt="Bank Logo" class="bank-logo" onerror="this.style.display='none'">
 
     <div class="buttonsH">
         <a th:href="@{'/' + ${bank} + '/login'}" class="btn-auth">Login</a>
         <a th:href="@{'/' + ${bank} + '/signup'}" class="btn-auth">Signup</a>
     </div>
 </div>
+
+<!-- Script to dynamically set logo -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var bank = /*[[${bank}]]*/ 'default';
+    var url = "";
+
+    if (bank === 'sbb') {
+        url = 'https://ucarecdn.com/f031ba1d-1c0d-4eb7-96ab-f4f4d5ba3c89/sbb_logo.png';
+    } else if (bank === 'camera') {
+        url = 'https://ucarecdn.com/bbd2b7fa-3a42-4835-8299-ea702b0dc2d9/camera_logo.png';
+    } else {
+        url = 'https://ucarecdn.com/7cbf6f3f-7a09-4828-8b24-ab17f8a6c1b2/united_logo.png';
+    }
+
+    document.getElementById("bankLogo").src = url;
+    /*]]>*/
+</script>
 
 </body>
 </html>

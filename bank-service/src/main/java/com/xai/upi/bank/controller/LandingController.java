@@ -11,8 +11,5 @@ public class LandingController {
         return "landing";
     }
 
-    @GetMapping("/bank")
-    public String redirectToBank(@RequestParam("bank") String bank) {
-        return "redirect:/" + bank;
-    }
+
 }

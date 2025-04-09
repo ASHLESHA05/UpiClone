@@ -2,9 +2,16 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>Dashboard - <span th:text="${bank}"></span></title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style>
+        .card { border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+    </style>
 </head>
 <body class="bg-light">
 
@@ -12,18 +19,194 @@
 <div th:replace="fragments/navbar :: navbar(${bank})"></div>
 
 <!-- Main Container -->
-<div class="container mt-3">
-
-    <!-- Admin Greeting -->
+<div class="container mt-4">
     <div th:if="${user.role == 'ADMIN'}" class="alert alert-info">
-        Hello, Welcome back chief
+        Hello, Welcome back Chief <span th:text="${user.name}"></span>
     </div>
+    <h2 class="mb-4">Dashboard - <span th:text="${bank}"></span></h2>
 
-    <!-- General Welcome Message -->
-    <h2>Welcome, <span th:text="${user.name}"></span></h2>
-    <p>This is your dashboard for <span th:text="${bank}"></span>.</p>
+    <!-- ADMIN Dashboard -->
+    <div th:if="${user.role == 'ADMIN'}" class="row">
+        <!-- Pie Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Transaction Types</h5>
+                    <div class="chart-container">
+                        <canvas id="transactionPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- Total Debits and Credits -->
+        <div class="col-md-6 mb-4">
+            <div class="row">
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Debits</h5>
+                            <p class="card-text display-4" th:text="${totalDebits}"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Credits</h5>
+                            <p class="card-text display-4" th:text="${totalCredits}"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar Graph -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Daily Transactions (Today)</h5>
+                    <div class="chart-container">
+                        <canvas id="dailyTransactionBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Line Chart -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Bank Balance</h5>
+                    <div class="chart-container">
+                        <canvas id="balanceLineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Chart Scripts -->
+<script th:if="${user.role == 'ADMIN'}" th:inline="javascript">
+    // Assign Thymeleaf variables to JavaScript
+    var creditCount = [[${creditCount}]];
+    var debitCount = [[${debitCount}]];
+    var totalBalance = [[${totalBalance}]];
+
+    // Debugging
+    console.log('Credit Count:', creditCount);
+    console.log('Debit Count:', debitCount);
+    console.log('Total Balance:', totalBalance);
+
+    // Pie Chart
+    var ctxPie = document.getElementById('transactionPieChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: ['Credits', 'Debits'],
+            datasets: [{
+                data: [creditCount, debitCount],
+                backgroundColor: ['#28a745', '#dc3545'],
+                borderColor: '#fff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Transaction Distribution' }
+            }
+        }
+    });
+
+    // Bar Chart
+    var ctxBar = document.getElementById('dailyTransactionBarChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: ['Credits', 'Debits'],
+            datasets: [{
+                label: 'Transactions',
+                data: [creditCount, debitCount],
+                backgroundColor: ['#28a745', '#dc3545'],
+                borderColor: '#0056b3',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Number of Transactions' } },
+                x: { title: { display: true, text: 'Transaction Type' } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
+
+<!-- Line Chart with Hourly Balance -->
+<script th:if="${user.role == 'ADMIN'}">
+    const hours = [
+        "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
+        "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
+        "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
+        "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
+    ];
+
+    const hourlyBalance = [
+        5000, 5200, 5300, 5400, 5600, 5900, 6100, 6400,
+        6800, 7000, 7200, 7500, 7800, 8000, 8300, 8600,
+        8800, 9000, 9300, 9500, 9700, 9900, 10100, 10300
+    ];
+
+    const ctxBalance = document.getElementById('balanceLineChart').getContext('2d');
+    new Chart(ctxBalance, {
+        type: 'line',
+        data: {
+            labels: hours,
+            datasets: [{
+                label: 'Total Bank Balance (₹)',
+                data: hourlyBalance,
+                fill: true,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.3,
+                pointRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: 'Balance (₹)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Hour of Day'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Balance Trend Over 24 Hours'
+                }
+            }
+        }
+    });
+</script>
 
 </body>
 </html>

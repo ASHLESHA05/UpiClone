@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import com.xai.upi.bank.services.*;
+import com.xai.upi.bank.services.   *;
 
 @Configuration
 @EnableWebSecurity
@@ -35,8 +35,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable() // Disable CSRF for simplicity (enable in production with proper config)
                 .authorizeRequests()
-                .antMatchers("/", "/{bank}/login", "/{bank}/signup").permitAll() // Public pages
+                .antMatchers("/", "/{bank}/login", "/{bank}/signup", "/images/**").permitAll() // Public pages
+                .antMatchers("/", "/{bank}", "/{bank}/login", "/{bank}/signup").permitAll()
                 .antMatchers("/{bank}/dashboard").authenticated() // Protected dashboard
+                .antMatchers("/{bank}/**").authenticated()
                 .anyRequest().denyAll() // Deny all other requests
                 .and()
                 .formLogin()

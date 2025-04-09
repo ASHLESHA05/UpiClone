@@ -4,10 +4,11 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
+<!-- Fragment definition with argument -->
 <nav th:fragment="navbar(bank)" class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand" th:href="@{'/' + ${bank}}">
-        <img th:src="@{'/images/' + ${bank} + '_logo.png'}" alt="Logo" width="30" class="d-inline-block align-top">
-        <span th:text="${bank}"></span>
+        <img src="https://ucarecdn.com/7cbf6f3f-7a09-4828-8b24-ab17f8a6c1b2/united_logo.png" id="bankLogo" alt="Logo" width="30" class="d-inline-block align-top">
+        <span th:text="${bank}">Bank</span>
     </a>
     <div class="collapse navbar-collapse">
         <ul class="navbar-nav ml-auto">
@@ -23,5 +24,24 @@
         </ul>
     </div>
 </nav>
+
+<!-- Inline JS to dynamically set the logo -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var bank = /*[[${bank}]]*/ 'default';
+    var logoUrl = '';
+
+    if (bank === 'sbb') {
+        logoUrl = 'https://ucarecdn.com/f031ba1d-1c0d-4eb7-96ab-f4f4d5ba3c89/sbb_logo.png';
+    } else if (bank === 'camera') {
+        logoUrl = 'https://ucarecdn.com/bbd2b7fa-3a42-4835-8299-ea702b0dc2d9/camera_logo.png';
+    } else {
+        logoUrl = 'https://ucarecdn.com/7cbf6f3f-7a09-4828-8b24-ab17f8a6c1b2/united_logo.png';
+    }
+
+    document.getElementById("bankLogo").src = logoUrl;
+    /*]]>*/
+</script>
+
 </body>
 </html>

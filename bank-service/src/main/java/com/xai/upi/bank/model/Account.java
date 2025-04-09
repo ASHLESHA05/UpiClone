@@ -9,6 +9,10 @@ public class Account {
     private String id;
     private String bankName;
     private String accountNumber;
+
+    private String accountType;
+    private String atmCardNumber;
+
     private double balance;
     private String userId;
     private String pin; // Hashed
@@ -16,6 +20,17 @@ public class Account {
 
     // Constructors, getters, setters
     public Account() {}
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+    public String getAtmCardNumber() {return atmCardNumber;}
+    public void setAtmCardNumber(String atmCardNumber) {this.atmCardNumber = atmCardNumber;}
+
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getBankName() { return bankName; }

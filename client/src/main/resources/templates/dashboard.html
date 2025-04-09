@@ -1,200 +1,230 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Dashboard</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-
+    <meta charset="UTF-8">
+    <title>Dashboard - <span th:text="${bank}"></span></title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .dashboard-header {
-            margin-bottom: 2rem;
-        }
-
-        .options-grid {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .option-card {
-            flex: 1;
-            padding: 1rem;
-            background-color: #f4f4f4;
-            text-align: center;
-            border-radius: 10px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .transaction-list {
-            list-style-type: none;
-            padding-left: 0;
-        }
-
-        .transaction-list li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .qr-section {
-            margin-top: 2rem;
-        }
-
-        .qr-scan-container {
-            margin-top: 10px;
-            position: relative;
-            display: none;
-        }
-
-        .qr-scan-container video {
-            width: 300px;
-            height: 200px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-        }
-
-        .qr-btns {
-            margin-top: 10px;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            background: red;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 16px;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-        }
+        .card { border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .chart-container { position: relative; height: 300px; width: 100%; }
     </style>
 </head>
-<body>
-<div class="container">
-    <div class="dashboard-header">
-        <h1>Welcome, <span th:text="${user.name}"></span></h1>
-        <p>UPI ID: <span th:text="${user.upiId}"></span></p>
-        <p>Balance: ₹<span th:text="${balance}"></span></p>
+<body class="bg-light">
+
+<!-- Navbar Fragment -->
+<div th:replace="fragments/navbar :: navbar(${bank})"></div>
+
+<!-- Main Container -->
+<div class="container mt-4">
+    <!-- Greetings -->
+    <div th:if="${user.role == 'ADMIN'}" class="alert alert-info">
+        Hello, Welcome back Chief <span th:text="${user.name}"></span>
+    </div>
+    <div th:if="${user.role == 'USER'}" class="alert alert-info">
+        Hello, Welcome back <span th:text="${user.name}"></span>
     </div>
 
-    <div class="options-grid">
-        <div class="option-card">
-            <a th:href="@{/transaction}" class="btn">Make Payment</a>
+    <h2 class="mb-4">Dashboard - <span th:text="${bank}"></span></h2>
+
+    <!-- ADMIN Dashboard -->
+    <div th:if="${user.role == 'ADMIN'}" class="row">
+        <!-- Pie Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Transaction Types</h5>
+                    <div class="chart-container">
+                        <canvas id="transactionPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="option-card">
-            <a th:href="@{/checkBalance}" class="btn">Check Balance</a>
+
+        <!-- Total Debits and Credits -->
+        <div class="col-md-6 mb-4">
+            <div class="row">
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Debits</h5>
+                            <p class="card-text display-4" th:text="${totalDebits}"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Credits</h5>
+                            <p class="card-text display-4" th:text="${totalCredits}"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="option-card">
-            <a th:href="@{/generateQr}" class="btn">Generate QR</a>
+
+        <!-- Bar Graph -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Daily Transactions (Today)</h5>
+                    <div class="chart-container">
+                        <canvas id="dailyTransactionBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Line Chart -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Bank Balance</h5>
+                    <div class="chart-container">
+                        <canvas id="balanceLineChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <h2>Transaction History</h2>
-    <ul class="transaction-list">
-        <li th:each="txn : ${transactions}" th:text="${txn.amount} + ' - ' + ${txn.status} + ' - ' + ${txn.timestamp}"></li>
-    </ul>
-
-    <div class="qr-section">
-        <h2>Scan QR</h2>
-        <button onclick="startScan()">Start Scan</button>
-
-        <div class="qr-scan-container" id="qrContainer">
-            <button class="close-btn" onclick="stopScan()">✖</button>
-            <video id="video" autoplay></video>
-            <canvas id="canvas" hidden></canvas>
-
-            <div class="qr-btns">
-                <button onclick="scanQR()">Scan</button>
+    <!-- USER Dashboard (unchanged) -->
+    <div th:if="${user.role == 'USER'}">
+        <div th:unless="${hasAccount}" class="mb-4">
+            <a th:href="@{'/' + ${bank} + '/createAccount'}" class="btn btn-primary btn-lg">Create Account</a>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Bank Offers & Promotions</h5>
+                <div id="adsCarousel" class="carousel slide" data-ride="carousel">
+                    <ol class="carousel-indicators">
+                        <li data-target="#adsCarousel" data-slide-to="0" class="active"></li>
+                        <li data-target="#adsCarousel" data-slide-to="1"></li>
+                        <li data-target="#adsCarousel" data-slide-to="2"></li>
+                    </ol>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <div class="d-block w-100 text-center p-4">
+                                <h3>Zero Balance Account</h3>
+                                <p>Open a zero balance account today with no maintenance fees!</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="d-block w-100 text-center p-4">
+                                <h3>5% Cashback</h3>
+                                <p>Get 5% cashback on all transactions this month!</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="d-block w-100 text-center p-4">
+                                <h3>Loan Offer</h3>
+                                <p>Apply for a personal loan with low interest rates!</p>
+                            </div>
+                        </div>
+                    </div>
+                    <a class="carousel-control-prev" href="#adsCarousel" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#adsCarousel" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const qrContainer = document.getElementById('qrContainer');
-    let stream;
+<!-- Chart Scripts -->
+<script th:if="${user.role == 'ADMIN'}">
+    // Assign Thymeleaf variables to JavaScript variables
+    var creditCount = /*[[${creditCount}]]*/ 0;
+    var debitCount = /*[[${debitCount}]]*/ 0;
+    var totalBalance = /*[[${totalBalance}]]*/ 0;
 
-    function startScan() {
-        qrContainer.style.display = 'block';
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(s => {
-                stream = s;
-                video.srcObject = stream;
-                video.setAttribute("playsinline", true);
-            })
-            .catch(err => {
-                Toastify({
-                    text: "Camera access denied: " + err.message,
-                    duration: 3000,
-                    gravity: "top",
-                    position: "right",
-                    backgroundColor: "#f44336"
-                }).showToast();
-            });
-    }
+    // Log values for debugging
+    console.log("Credit Count: ", creditCount);
+    console.log("Debit Count: ", debitCount);
+    console.log("Total Balance: ", totalBalance);
 
-    function stopScan() {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+    // Pie Chart
+    var ctxPie = document.getElementById('transactionPieChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: ['Credits', 'Debits'],
+            datasets: [{
+                data: [creditCount, debitCount],
+                backgroundColor: ['#28a745', '#dc3545'],
+                borderColor: '#fff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Transaction Distribution' }
+            }
         }
-        qrContainer.style.display = 'none';
-    }
+    });
 
-    function scanQR() {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-        if (code) {
-            window.location.href = '/transaction?receiverPhone=' + code.data.split('@')[0];
-        } else {
-            Toastify({
-                text: "No QR code detected",
-                duration: 3000,
-                gravity: "top",
-                position: "right",
-                backgroundColor: "#f44336"
-            }).showToast();
+    // Bar Chart
+    var ctxBar = document.getElementById('dailyTransactionBarChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: ['Credits', 'Debits'],
+            datasets: [{
+                label: 'Transactions',
+                data: [creditCount, debitCount],
+                backgroundColor: ['#28a745', '#dc3545'],
+                borderColor: '#0056b3',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Number of Transactions' } },
+                x: { title: { display: true, text: 'Transaction Type' } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
         }
-    }
+    });
 
-    const error = /*[[${error}]]*/ null;
-    if (error) {
-        Toastify({
-            text: error,
-            duration: 3000,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#f44336"
-        }).showToast();
-    }
+    // Line Chart
+    var ctxLine = document.getElementById('balanceLineChart').getContext('2d');
+    new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            labels: ['Current'],
+            datasets: [{
+                label: 'Total Balance',
+                data: [totalBalance],
+                fill: false,
+                borderColor: '#17a2b8',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: false, title: { display: true, text: 'Balance (₹)' } },
+                x: { title: { display: true, text: 'Time' } }
+            }
+        }
+    });
 </script>
+
 </body>
 </html>

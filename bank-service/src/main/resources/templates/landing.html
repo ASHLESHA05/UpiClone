@@ -64,7 +64,7 @@
 </head>
 <body>
 <div class="bank-card">
-    <img th:src="@{'/images/bank.jpg'}" alt="Bank Logo" class="bank-logo" onerror="this.style.display='none'">
+    <img src="https://ucarecdn.com/a4a0fb0e-b254-466d-a7d0-59a4e9092227/bank.jpeg" alt="Bank Logo" class="bank-logo">
     <h1>Welcome to Banking Portal</h1>
     <form id="bankForm">
         <div class="form-group">
@@ -82,9 +82,11 @@
     document.getElementById('bankForm').addEventListener('submit', function(e) {
         e.preventDefault();
         var bank = document.getElementById('bankSelect').value;
+        console.log("bank: ",bank)
         if (bank) {
             window.location.href = '/' + bank;
         }
+
     });
 </script>
 </body>
