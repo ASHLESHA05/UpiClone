@@ -1,16 +1,37 @@
 package com.xai.upi.client.model;
 
-public class SignUpRequest {
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+@Document
+public class User {
+
+    @Id
+    private String id;
     private String name;
     private String phone;
     private String email;
     private String aadhar;
+    private String bankName;
     private String password;
     private String username;
     private Integer loginPin;
-
+    private boolean isupiPinSer = false;
     // Getters and Setters
+
+
+    public boolean isIsupiPinSer() {
+        return isupiPinSer;
+    }
+    public void setIsupiPinSer(boolean isupiPinSer) {this.isupiPinSer = isupiPinSer;}
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -42,6 +63,14 @@ public class SignUpRequest {
 
     public void setAadhar(String aadhar) {
         this.aadhar = aadhar;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
     }
 
     public String getPassword() {

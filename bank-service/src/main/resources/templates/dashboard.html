@@ -87,14 +87,195 @@
     </div>
 </div>
 
-<!-- Chart Scripts -->
-<script th:if="${user.role == 'ADMIN'}" th:inline="javascript">
-    // Assign Thymeleaf variables to JavaScript
-    var creditCount = [[${creditCount}]];
-    var debitCount = [[${debitCount}]];
-    var totalBalance = [[${totalBalance}]];
+<div class="user-offers-section" th:if="${user.role == 'USER'}">
+    <div th:unless="${hasAccount}" class="mb-4 text-center"> <a th:href="@{'/' + ${bank} + '/createAccount'}" class="btn btn-primary btn-lg btn-create-account">Create Account</a>
+    </div>
+    <div class="card offer-card shadow-sm"> <div class="card-body">
+        <h5 class="card-title text-center mb-4">Bank Offers & Promotions</h5> <div id="adsCarousel" class="carousel slide" data-ride="carousel" data-interval="5000"> <ol class="carousel-indicators">
+        <li data-target="#adsCarousel" data-slide-to="0" class="active"></li>
+        <li data-target="#adsCarousel" data-slide-to="1"></li>
+        <li data-target="#adsCarousel" data-slide-to="2"></li>
+    </ol>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="d-block w-100 text-center p-4 offer-item"> <i class="fas fa-university fa-2x mb-3 text-primary"></i> <h3>Zero Balance Account</h3>
+                    <p class="lead">Open a zero balance account today with no maintenance fees!</p> </div>
+            </div>
+            <div class="carousel-item">
+                <div class="d-block w-100 text-center p-4 offer-item"> <i class="fas fa-percent fa-2x mb-3 text-success"></i> <h3>5% Cashback</h3>
+                    <p class="lead">Get 5% cashback on all transactions this month!</p> </div>
+            </div>
+            <div class="carousel-item">
+                <div class="d-block w-100 text-center p-4 offer-item"> <i class="fas fa-hand-holding-usd fa-2x mb-3 text-info"></i> <h3>Loan Offer</h3>
+                    <p class="lead">Apply for a personal loan with low interest rates!</p> </div>
+            </div>
+        </div>
+        <a class="carousel-control-prev" href="#adsCarousel" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+        </a>
+        <a class="carousel-control-next" href="#adsCarousel" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+        </a>
+    </div>
+    </div>
+    </div>
+</div>
+<style>
 
-    // Debugging
+    /* --- Variable Definitions (Optional but recommended) --- */
+    :root {
+        --offer-primary-color: #007bff; /* Bootstrap Primary Blue */
+        --offer-secondary-color: #6c757d; /* Bootstrap Secondary Gray */
+        --offer-gradient-start: #eef7ff;
+        --offer-gradient-end: #ffffff;
+        --offer-text-color: #333;
+        --offer-accent-color: #0056b3;
+        --offer-card-bg: #ffffff;
+        --offer-shadow-color: rgba(0, 0, 0, 0.1);
+    }
+
+    /* --- General Section Styling --- */
+    .user-offers-section {
+        padding: 20px 0; /* Add some vertical padding */
+    }
+
+    /* --- Create Account Button --- */
+    .btn-create-account {
+        background-image: linear-gradient(to right, var(--offer-primary-color), var(--offer-accent-color));
+        border: none;
+        padding: 12px 30px;
+        font-weight: bold;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        border-radius: 50px; /* Make it pill-shaped */
+    }
+
+    .btn-create-account:hover,
+    .btn-create-account:focus {
+        background-image: linear-gradient(to right, var(--offer-accent-color), var(--offer-primary-color));
+        box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+        transform: translateY(-2px); /* Slight lift effect */
+        color: #fff; /* Ensure text stays white */
+    }
+
+    /* --- Offer Card Styling --- */
+    .offer-card {
+        border: none; /* Remove default border */
+        border-radius: 15px; /* More rounded corners */
+        background-color: var(--offer-card-bg);
+        box-shadow: 0 5px 20px var(--offer-shadow-color); /* Softer, larger shadow */
+        overflow: hidden; /* Ensure content respects border-radius */
+    }
+
+    .offer-card .card-title {
+        color: var(--offer-accent-color);
+        font-weight: 600;
+        font-size: 1.5rem; /* Larger title */
+    }
+
+    /* --- Carousel Styling --- */
+    #adsCarousel {
+        background: linear-gradient(135deg, var(--offer-gradient-start), var(--offer-gradient-end));
+        border-radius: 10px; /* Rounded corners inside the card */
+        margin: -1rem; /* Extend slightly into card padding */
+        padding: 1rem; /* Add padding back inside */
+        min-height: 280px; /* Ensure consistent height */
+        display: flex; /* Needed for vertical centering */
+        align-items: center; /* Vertically center content */
+    }
+
+    #adsCarousel .carousel-inner {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    /* --- Carousel Item Styling --- */
+    #adsCarousel .carousel-item {
+        transition: transform 0.6s ease-in-out; /* Default Bootstrap transition */
+    }
+
+    #adsCarousel .offer-item {
+        color: var(--offer-text-color);
+        padding: 30px 20px; /* Adjust padding */
+    }
+
+    #adsCarousel .offer-item i {
+        /* Icons already have color via text-primary etc. */
+        opacity: 0.9;
+    }
+
+    #adsCarousel .offer-item h3 {
+        font-size: 1.75rem; /* Larger heading */
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        color: var(--offer-primary-color); /* Use primary color for heading */
+    }
+
+    #adsCarousel .offer-item p.lead {
+        font-size: 1.1rem; /* Slightly larger lead text */
+        color: var(--offer-secondary-color);
+        font-weight: 400;
+        margin-bottom: 0; /* Remove bottom margin */
+    }
+
+    /* --- Carousel Indicators --- */
+    #adsCarousel .carousel-indicators {
+        bottom: -10px; /* Adjust position */
+    }
+
+    #adsCarousel .carousel-indicators li {
+        background-color: rgba(0, 86, 179, 0.3); /* Semi-transparent accent */
+        border-radius: 50%;
+        width: 12px;
+        height: 12px;
+        margin: 0 6px;
+        border: none;
+        transition: background-color 0.3s ease;
+    }
+
+    #adsCarousel .carousel-indicators .active {
+        background-color: var(--offer-accent-color); /* Solid accent color */
+    }
+
+    /* --- Carousel Controls (Arrows) --- */
+    #adsCarousel .carousel-control-prev,
+    #adsCarousel .carousel-control-next {
+        width: 5%; /* Narrower control area */
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+    }
+
+    #adsCarousel .carousel-control-prev:hover,
+    #adsCarousel .carousel-control-next:hover {
+        opacity: 1;
+    }
+
+    #adsCarousel .carousel-control-prev-icon,
+    #adsCarousel .carousel-control-next-icon {
+        background-color: rgba(0, 0, 0, 0.3); /* Darker background for visibility */
+        background-size: 60%, 60%; /* Make icon smaller within the background */
+        border-radius: 50%; /* Circular background */
+        padding: 15px; /* Increase padding for larger clickable area */
+        transition: background-color 0.3s ease;
+    }
+
+    #adsCarousel .carousel-control-prev-icon:hover,
+    #adsCarousel .carousel-control-next-icon:hover {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+</style>
+<!-- Chart Scripts -->
+<script th:if="${user.role == 'ADMIN'}">
+    // Assign Thymeleaf variables to JavaScript
+    var creditCount = `${creditCount}`
+    var debitCount = `${debitCount}`;
+    var totalBalance = `${totalBalance}`;
+
+    // Debugging: Log values to console
     console.log('Credit Count:', creditCount);
     console.log('Debit Count:', debitCount);
     console.log('Total Balance:', totalBalance);
@@ -148,61 +329,27 @@
             }
         }
     });
-</script>
 
-<!-- Line Chart with Hourly Balance -->
-<script th:if="${user.role == 'ADMIN'}">
-    const hours = [
-        "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
-        "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
-        "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
-        "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
-    ];
-
-    const hourlyBalance = [
-        5000, 5200, 5300, 5400, 5600, 5900, 6100, 6400,
-        6800, 7000, 7200, 7500, 7800, 8000, 8300, 8600,
-        8800, 9000, 9300, 9500, 9700, 9900, 10100, 10300
-    ];
-
-    const ctxBalance = document.getElementById('balanceLineChart').getContext('2d');
-    new Chart(ctxBalance, {
+    // Line Chart
+    var ctxLine = document.getElementById('balanceLineChart').getContext('2d');
+    new Chart(ctxLine, {
         type: 'line',
         data: {
-            labels: hours,
+            labels: ['Current'],
             datasets: [{
-                label: 'Total Bank Balance (₹)',
-                data: hourlyBalance,
-                fill: true,
-                borderColor: '#28a745',
-                backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                tension: 0.3,
-                pointRadius: 2
+                label: 'Total Balance',
+                data: [totalBalance],
+                fill: false,
+                borderColor: '#17a2b8',
+                tension: 0.1
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: {
-                    beginAtZero: false,
-                    title: {
-                        display: true,
-                        text: 'Balance (₹)'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Hour of Day'
-                    }
-                }
-            },
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Balance Trend Over 24 Hours'
-                }
+                y: { beginAtZero: false, title: { display: true, text: 'Balance (₹)' } },
+                x: { title: { display: true, text: 'Time' } }
             }
         }
     });

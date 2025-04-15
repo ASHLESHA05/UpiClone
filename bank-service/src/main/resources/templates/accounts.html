@@ -33,8 +33,8 @@
         </div>
         <div th:unless="${account}">
             <p>No account found.</p>
-            <a th:href="@{'/' + ${bank} + '/createAccount'}" class="btn btn-dark">Create Account</a>
         </div>
+        <a th:href="@{'/' + ${bank} + '/createAccount'}" class="btn btn-dark">Create New Account</a>
     </div>
 </div>
 </body>

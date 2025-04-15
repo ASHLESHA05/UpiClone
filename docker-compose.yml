@@ -1,28 +1,37 @@
-#version: '3.8'
+version: '3.8'
+
 services:
-  bank-service:
-    build: ./bank-service
-    ports:
-      - "8081:8081"
-    depends_on:
-      - mongodb-bank
-      - mongodb-npci
+  # bank-service:
+  #   build: ./bank-service
+  #   ports:
+  #     - "8081:8081"
+  #   depends_on:
+  #     - mongodb-bank
+  #   networks:
+  #     - upi-network
+  #   restart: unless-stopped
 
-#  npci-service:
-#    build: ./npci-service
-#    ports:
-#      - "8082:8082"
-#    depends_on:
-#      - mongodb-npci
-#      - mongodb-bank
+  # npci-service:
+  #   build: ./npci-service
+  #   ports:
+  #     - "8082:8082"
+  #   depends_on:
+  #     - mongodb-npci
+  #   networks:
+  #     - upi-network
+  #   restart: unless-stopped
 
-#  client:
-#    build: ./client
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - bank-service
-#      - npci-service
+  # client:
+  #   build: ./client
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - bank-service
+  #     - npci-service
+  #     - mongodb-client
+  #   networks:
+  #     - upi-network
+  #   restart: unless-stopped
 
   mongodb-bank:
     image: mongo:latest
@@ -30,6 +39,9 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_bank_data:/data/db
+    networks:
+      - upi-network
+    restart: unless-stopped
 
   mongodb-npci:
     image: mongo:latest
@@ -37,7 +49,24 @@ services:
       - "27018:27017"
     volumes:
       - mongodb_npci_data:/data/db
+    networks:
+      - upi-network
+    restart: unless-stopped
+
+  mongodb-client:
+    image: mongo:latest
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongodb_client_data:/data/db
+    networks:
+      - upi-network
+    restart: unless-stopped
 
 volumes:
   mongodb_bank_data:
   mongodb_npci_data:
+  mongodb_client_data:
+
+networks:
+  upi-network:

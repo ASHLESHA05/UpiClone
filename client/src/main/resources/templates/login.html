@@ -1,35 +1,177 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-    <title>Login</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MyPay</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #6b48ff 100%);
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 10%, transparent 50%);
+            animation: pulse 15s infinite ease-in-out;
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0.5; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1e3c72;
+            margin-bottom: 2rem;
+            background: linear-gradient(90deg, #1e3c72, #6b48ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        input {
+            margin-top: 0.5rem;
+            padding: 12px 15px;
+            font-size: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #6b48ff;
+            box-shadow: 0 0 8px rgba(107, 72, 255, 0.3);
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #999;
+            font-weight: 400;
+        }
+
+        button {
+            padding: 12px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            background: #1e3c72;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #6b48ff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .signup-link {
+            text-align: center;
+            font-size: 1rem;
+            color: #1e3c72;
+            margin-top: 1.5rem;
+        }
+
+        .signup-link a {
+            color: #6b48ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <h1>Login</h1>
-    <form th:action="@{/do-login}" method="post">
-        <label>Email: <input type="email" name="email" placeholder="Enter your email" required></label>
-        <label>Password: <input type="password" name="password" placeholder="Enter your password" required></label>
+    <!-- Changed action from /do-login to /auth/login -->
+    <form th:action="@{/auth/login}" method="post">
+        <label>
+            Email or Username
+            <input type="text" name="username" placeholder="Enter your email or username" required>
+        </label>
+        <label>
+            Password or PIN
+            <input type="password" name="password" placeholder="Enter your password or PIN" required>
+        </label>
         <button type="submit">Login</button>
     </form>
+    <!-- Added signup hyperlink -->
+    <div class="signup-link">
+        New user? <a th:href="@{/auth/signup}">Sign Up</a>
+    </div>
+    <!-- Display error messages -->
+    <p th:if="${param.error}" style="color: red;">Invalid credentials</p>
+    <p th:if="${param.logout}" style="color: green;">You have been logged out</p>
 </div>
 <script>
-    const error = /*[[${error}]]*/ null;
+    const error = /*[[${param.error}]]*/ null;
     if (error) {
-        Toastify({ text: error, duration: 3000, gravity: "top", position: "right", backgroundColor: "#f44336" }).showToast();
+        Toastify({
+            text: "Invalid credentials",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#f44336",
+            stopOnFocus: true
+        }).showToast();
     }
-</script><!-- Optional: Show login error -->
-<div th:if="${param.error}">
-    Invalid username or password.
-</div>
-
-<!-- Optional: Logout message -->
-<div th:if="${param.logout}">
-    You have been logged out.
-</div>
-
+</script>
 </body>
 </html>

@@ -41,4 +41,6 @@ public class User {
     public void setOtpGeneratedAt(LocalDateTime otpGeneratedAt) {this.otpGeneratedAt = otpGeneratedAt; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    public String getUPiPin() { return upiPin; }
+    public void setUPiPin(String upiPin) { this.upiPin = upiPin; }
 }

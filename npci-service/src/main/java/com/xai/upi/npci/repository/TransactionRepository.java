@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface TransactionRepository extends MongoRepository<Transaction, String> {
     List<Transaction> findBySenderUpiIdOrReceiverUpiId(String senderUpiId, String receiverUpiId);
+    List<Transaction> findByFromUserIdOrToUpiId(String fromUserId, String toUpiId);
 }
 

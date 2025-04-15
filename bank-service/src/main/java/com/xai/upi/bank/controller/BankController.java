@@ -2,11 +2,14 @@ package com.xai.upi.bank.controller;
 
 import com.xai.upi.bank.model.Account;
 import com.xai.upi.bank.repository.AccountRepository;
+import com.xai.upi.bank.services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -15,6 +18,9 @@ public class BankController {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private AccountService accountService;
 
     @GetMapping("/account/{id}")
     public ResponseEntity<?> getAccount(@PathVariable String id) {
@@ -98,5 +104,27 @@ public class BankController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save credit transaction");
         }
+    }
+
+    @GetMapping("/getAccdata")
+    public ResponseEntity<List<Account>> getAccdata(@RequestBody Map<String, String> request) {
+        String phone = request.get("phone");
+        String bankName = request.get("bankName");
+        if (phone == null || bankName == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<Account> accounts = accountService.findAccountsByPhoneAndBankName(phone, bankName);
+        return ResponseEntity.ok(accounts);
+    }
+
+    @GetMapping("/getCardData")
+    public ResponseEntity<List<Account>> getCardData(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String bankName = request.get("bankName");
+        if (email == null || bankName == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<Account> cards = accountService.getCardByEmail(email, bankName);
+        return ResponseEntity.ok(cards);
     }
 }

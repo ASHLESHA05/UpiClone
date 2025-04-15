@@ -21,23 +21,48 @@ public class CustomUserDetails implements UserDetails {
     }
 
     @Override
-    public String getPassword() { return user.getPassword(); }
+    public String getPassword() {
+        return user.getPassword();
+    }
 
     @Override
-    public String getUsername() { return user.getBank() + ":" + user.getEmail(); }
+    public String getUsername() {
+        return user.getBank() + ":" + user.getEmail();
+    }
 
     @Override
-    public boolean isAccountNonExpired() { return true; }
+    public boolean isAccountNonExpired() {
+        return true;
+    }
 
     @Override
-    public boolean isAccountNonLocked() { return true; }
+    public boolean isAccountNonLocked() {
+        return true;
+    }
 
     @Override
-    public boolean isCredentialsNonExpired() { return true; }
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() {
+        return true;
+    }
 
-    public User getUser() { return user; }
-    public String getBank() { return user.getBank(); }
+    public User getUser() {
+        return user;
+    }
+
+    public String getBank() {
+        return user.getBank();
+    }
+
+    public String getEmail() {
+        return user.getEmail();
+    }
+
+    public String getUserId() {
+        return user.getId();
+    }
 }

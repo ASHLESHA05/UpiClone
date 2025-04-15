@@ -164,3 +164,154 @@ input:focus, select:focus {
         grid-template-columns: 1fr;
     }
 }
+
+/* General Body Styling */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f2f5; /* Light grey background */
+    /* Or a subtle gradient */
+    /* background: linear-gradient(135deg, #eef2f7 0%, #d7e3fc 100%); */
+    color: #333;
+}
+
+/* Animation Container */
+#logo-animation-container {
+    position: absolute; /* Position relative to the main container */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10; /* Ensure logo is above the content initially */
+    opacity: 0; /* Start hidden */
+    animation: logoEntrance 2.5s ease-out forwards; /* Animation definition */
+}
+
+#animated-logo {
+    max-width: 200px; /* Adjust size as needed */
+    height: auto;
+    display: block; /* Prevent extra space below image */
+}
+
+/* Keyframes for Logo Animation (Example: Scale, Fade, Slight Rotate) */
+@keyframes logoEntrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.1) rotate(-180deg);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.1) rotate(10deg);
+    }
+    80% {
+        transform: scale(0.95) rotate(-5deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+        /* Keep final state centered */
+        /* To move it aside after animation, add more keyframes or use JS */
+    }
+}
+
+
+/* Main Content Styling & Fade-in */
+#main-content {
+    opacity: 0; /* Initially hidden */
+    animation: contentFadeIn 1.5s ease-in 2.5s forwards; /* Delay matches logo animation duration */
+    z-index: 5; /* Below logo during animation */
+    position: relative; /* Needed for z-index */
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8); /* Slight white background for readability */
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Keyframes for Content Fade-in */
+@keyframes contentFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px); /* Optional subtle upward movement */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.welcome-text {
+    color: #0d6efd; /* Or your primary brand color */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Button Grid */
+.options-grid {
+    margin-top: 30px;
+    display: flex; /* Use flexbox for button alignment */
+    justify-content: center; /* Center buttons horizontally */
+    gap: 15px; /* Space between buttons */
+}
+
+/* Button Styling Overrides (if needed beyond btn-dark/btn-secondary) */
+.btn-dark {
+    background-color: #343a40; /* Standard Bootstrap dark */
+    border-color: #343a40;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-dark:hover {
+    background-color: #23272b; /* Darken on hover */
+    border-color: #1d2124;
+    transform: translateY(-2px); /* Slight lift effect */
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    transform: translateY(-2px);
+}
+
+.btn-lg {
+    font-weight: 500; /* Make text slightly bolder */
+    letter-spacing: 0.5px;
+}
+
+
+/* Ensure footer stays at bottom */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1 0 auto; /* Allows main content to grow and shrink */
+}
+
+footer {
+    flex-shrink: 0; /* Prevents footer from shrinking */
+}
+
+/* Responsive adjustments if needed */
+@media (max-width: 576px) {
+    #animated-logo {
+        max-width: 150px;
+    }
+    .welcome-text {
+        font-size: 2.5rem; /* Adjust heading size on small screens */
+    }
+    .options-grid {
+        flex-direction: column; /* Stack buttons vertically */
+        align-items: center;
+    }
+    .btn-lg {
+        width: 80%; /* Make buttons wider on mobile */
+        margin-bottom: 10px; /* Add space when stacked */
+    }
+    #main-content {
+        padding: 15px;
+    }
+}

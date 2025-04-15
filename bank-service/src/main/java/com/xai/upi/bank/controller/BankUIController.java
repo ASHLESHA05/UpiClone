@@ -72,6 +72,9 @@ public class BankUIController {
 
             double totalDebits = transactionService.getTotalDebits(bank);
             double totalCredits = transactionService.getTotalCredits(bank);
+            System.out.println("Total Debits: " + totalDebits);
+            System.out.println("Total Credits: " + totalCredits);
+
             model.addAttribute("totalDebits", totalDebits);
             model.addAttribute("totalCredits", totalCredits);
 
@@ -79,6 +82,10 @@ public class BankUIController {
             long debitCount = dailyTransactions.stream().filter(t -> "DEBIT".equals(t.getType())).count();
             model.addAttribute("creditCount", creditCount);
             model.addAttribute("debitCount", debitCount);
+
+            //Dosent get the counts update it ..
+            System.out.println("creditCount: " + creditCount);
+            System.out.println("debitCount: " + debitCount);
 
             double totalBalance = accounts.stream().mapToDouble(Account::getBalance).sum();
             model.addAttribute("totalBalance", totalBalance);

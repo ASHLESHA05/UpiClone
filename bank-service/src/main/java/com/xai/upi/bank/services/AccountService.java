@@ -4,13 +4,17 @@ import com.xai.upi.bank.model.Account;
 import com.xai.upi.bank.model.Transaction;
 import com.xai.upi.bank.repository.AccountRepository;
 import com.xai.upi.bank.repository.TransactionRepository;
+import com.xai.upi.bank.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Collections;
 
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.List;
 
 @Service
 public class AccountService {
@@ -20,6 +24,9 @@ public class AccountService {
 
     @Autowired
     private TransactionRepository transactionRepository;
+
+    @Autowired
+    private UserService userService; // Assumed to exist
 
     @Transactional
     public void creditAccount(String accountId, double amount) {
@@ -69,9 +76,9 @@ public class AccountService {
         account.setAccountType(accountType);
         if (generateAtmCard) {
             account.setAtmCardNumber(generateAtmCardNumber());
-            account.setCvv(generateCvv()); // Random CVV when card is generated
+            account.setCvv(generateCvv());
         } else {
-            account.setCvv("NA"); // Default to NA if no card
+            account.setCvv("NA");
         }
         accountRepository.save(account);
         System.out.println("\n\n==============Account created===============\n\n");
@@ -86,7 +93,7 @@ public class AccountService {
         Account account = findById(accountId);
         if (account.getAtmCardNumber() == null) {
             account.setAtmCardNumber(generateAtmCardNumber());
-            account.setCvv(generateCvv()); // Random CVV when card is generated
+            account.setCvv(generateCvv());
             accountRepository.save(account);
         }
     }
@@ -104,11 +111,38 @@ public class AccountService {
 
     private String generateCvv() {
         Random random = new Random();
-        return String.format("%03d", random.nextInt(1000)); // Generates a 3-digit CVV (000-999)
+        return String.format("%03d", random.nextInt(1000));
     }
 
-    // For admin: fetch all accounts by bank name (assumed method)
     public List<Account> findAllByBankName(String bankName) {
         return accountRepository.findByBankName(bankName);
     }
+
+    public List<Account> findAccountsByPhoneAndBankName(String phone, String bankName) {
+        List<String> userIds = userService.findUsersId(phone);
+        List<Account> result = new ArrayList<>();
+        for (String userId : userIds) {
+            Optional<Account> acc = accountRepository.findByUserIdAndBankName(userId, bankName);
+            if (acc.isPresent()) {
+                result.add(acc.get());
+            }
+        }
+        return result;
+    }
+
+    public List<Account> getCardByEmail(String email, String bankName) {
+        Optional<User> res = userService.finduserByEmailBank(email, bankName);
+
+        if (res.isPresent()) {
+            String userId = res.get().getId();
+
+            return accountRepository.findByUserIdAndBankName(userId, bankName)
+                    .map(Collections::singletonList)
+                    .orElse(Collections.emptyList());
+        }
+
+        return Collections.emptyList();
+    }
+
+
 }

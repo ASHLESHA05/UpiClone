@@ -9,6 +9,9 @@ import java.util.Date;
 public class Transaction {
     @Id
     private String id;
+    private String fromUserId;
+    private String toUserId;
+    private String toUpiId;
     private String senderUpiId;
     private String receiverUpiId;
     private double amount;
@@ -28,4 +31,13 @@ public class Transaction {
     public void setStatus(String status) { this.status = status; }
     public Date getTimestamp() { return timestamp; }
     public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
+    public String getFromUserId() { return fromUserId; }
+    public void setFromUserId(String fromUserId) { this.fromUserId = fromUserId; }
+    public String getToUserId() { return toUserId; }
+    public void setToUserId(String toUserId) { this.toUserId = toUserId; }
+    public String getToUpiId() { return toUpiId; }
+    public void setToUpiId(String toUpiId) {
+        this.toUpiId = toUpiId;
+    }
+
 }

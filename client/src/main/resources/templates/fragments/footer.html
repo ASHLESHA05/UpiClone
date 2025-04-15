@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer th:fragment="footer" class="bg-dark text-light text-center py-3 mt-auto">
+    <div class="container">
+        <p class="mb-0">&copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> MyPay UPI Clone. All Rights Reserved.</p>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+
 @Service
 public class UserService {
     @Autowired
@@ -32,5 +35,14 @@ public class UserService {
         user.setName(name);
         user.setPhone(phone);
         return userRepository.save(user);
+    }
+
+    public List<String> findUsersId(String phone) {
+        return userRepository.findUserIdsByPhone(phone); // ✅ Correct
+
+    }
+
+    public Optional<User> finduserByEmailBank(String email,String BankName){
+        return userRepository.findByEmailAndBank(email,BankName);
     }
 }
