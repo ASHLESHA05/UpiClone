@@ -22,7 +22,7 @@ public class BankController {
     @Autowired
     private AccountService accountService;
 
-    @GetMapping("/account/{id}")
+    @GetMapping("/ipc/account/{id}")
     public ResponseEntity<?> getAccount(@PathVariable String id) {
         Optional<Account> accountOptional = accountRepository.findById(id);
         if (accountOptional.isPresent()) {
@@ -106,25 +106,32 @@ public class BankController {
         }
     }
 
-    @GetMapping("/getAccdata")
+    @PostMapping("/ipc/getAccdata")
     public ResponseEntity<List<Account>> getAccdata(@RequestBody Map<String, String> request) {
         String phone = request.get("phone");
         String bankName = request.get("bankName");
+        System.out.println("In POST getAccdata");
+        System.out.println(phone);
+        System.out.println(bankName);
         if (phone == null || bankName == null) {
             return ResponseEntity.badRequest().build();
         }
         List<Account> accounts = accountService.findAccountsByPhoneAndBankName(phone, bankName);
+        System.out.println("Accounts" + accounts);
         return ResponseEntity.ok(accounts);
     }
 
-    @GetMapping("/getCardData")
+
+    @PostMapping("/ipc/getCardData")
     public ResponseEntity<List<Account>> getCardData(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String bankName = request.get("bankName");
         if (email == null || bankName == null) {
             return ResponseEntity.badRequest().build();
         }
+
         List<Account> cards = accountService.getCardByEmail(email, bankName);
+        System.out.println("Cards" + cards);
         return ResponseEntity.ok(cards);
     }
 }

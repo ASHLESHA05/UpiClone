@@ -1,4 +1,4 @@
-package com.xai.upi.bank.model;
+package com.xai.upi.client.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

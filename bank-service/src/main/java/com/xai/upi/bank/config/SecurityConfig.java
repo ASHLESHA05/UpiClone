@@ -31,6 +31,7 @@ public class SecurityConfig {
         return (request, response, authentication) -> {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             String bank = userDetails.getBank();
+            System.out.println("Pushed from Security config");
             response.sendRedirect("/" + bank + "/dashboard");
         };
     }

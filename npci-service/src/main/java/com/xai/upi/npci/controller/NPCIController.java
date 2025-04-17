@@ -11,12 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import java.util.*;
+
 @RestController
 @RequestMapping("/api")
 public class NPCIController {
@@ -39,15 +35,17 @@ public class NPCIController {
     private HttpHeaders getHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Internal-Token", INTERNAL_TOKEN);
+        headers.set("fonlt", "present");
         return headers;
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/ipc/signup")
     public ResponseEntity<String> signUp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String password = request.get("password");
         String phone = request.get("phone");
         String name = request.get("name");
+        String userId = request.get("userId");
 
         if (userRepository.findByEmail(email).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
@@ -55,6 +53,8 @@ public class NPCIController {
 
         User user = new User();
         user.setEmail(email);
+        System.out.println("In NPCI server save userID"+userId);
+        user.setUserId(userId);
         user.setPassword(passwordEncoder.encode(password));
         user.setPhone(phone);
         user.setName(name);
@@ -81,7 +81,7 @@ public class NPCIController {
         String userId = request.get("userId");
         String bankName = request.get("bankName");
 
-        Optional<User> userOptional = userRepository.findById(userId);
+        Optional<User> userOptional = userRepository.findByUserId(userId);
         if (!userOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
@@ -105,7 +105,7 @@ public class NPCIController {
         String userId = request.get("userId");
         String upiPin = request.get("upiPin");
 
-        Optional<User> userOptional = userRepository.findById(userId);
+        Optional<User> userOptional = userRepository.findByUserId(userId);
         if (!userOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
@@ -124,7 +124,7 @@ public class NPCIController {
         String amountStr = request.get("amount");
         String upiPin = request.get("upiPin");
 
-        Optional<User> fromUserOptional = userRepository.findById(fromUserId);
+        Optional<User> fromUserOptional = userRepository.findByUserId(fromUserId);
         Optional<User> toUserOptional = userRepository.findByUpiId(toUpiId);
 
         if (!fromUserOptional.isPresent() || !toUserOptional.isPresent()) {
@@ -143,36 +143,19 @@ public class NPCIController {
             return ResponseEntity.badRequest().body("Invalid amount");
         }
 
-        // Assuming bank-service handles actual debit/credit
-        HttpEntity<Map<String, String>> debitEntity = new HttpEntity<>(
-                Map.of("accountId", fromUserId, "amount", amountStr),
-                getHeaders()
-        );
-        ResponseEntity<String> debitResponse = restTemplate.exchange(
-                BANK_BASE_URL + "/ipc/debit",
-                HttpMethod.POST,
-                debitEntity,
-                String.class
-        );
+        HttpEntity<Map<String, String>> debitEntity = new HttpEntity<>(Map.of("accountId", fromUserId, "amount", amountStr), getHeaders());
+        ResponseEntity<String> debitResponse = restTemplate.exchange(BANK_BASE_URL + "/ipc/debit", HttpMethod.POST, debitEntity, String.class);
 
         if (debitResponse.getStatusCode() != HttpStatus.OK) {
             return debitResponse;
         }
 
-        HttpEntity<Map<String, String>> creditEntity = new HttpEntity<>(
-                Map.of("accountId", toUserOptional.get().getId(), "amount", amountStr),
-                getHeaders()
-        );
-        ResponseEntity<String> creditResponse = restTemplate.exchange(
-                BANK_BASE_URL + "/ipc/credit",
-                HttpMethod.POST,
-                creditEntity,
-                String.class
-        );
+        HttpEntity<Map<String, String>> creditEntity = new HttpEntity<>(Map.of("accountId", toUserOptional.get().getId(), "amount", amountStr), getHeaders());
+        ResponseEntity<String> creditResponse = restTemplate.exchange(BANK_BASE_URL + "/ipc/credit", HttpMethod.POST, creditEntity, String.class);
 
         if (creditResponse.getStatusCode() == HttpStatus.OK) {
             LocalDateTime time = LocalDateTime.now();
-            Date date = Date.from(time.atZone(ZoneId.systemDefault()).toInstant());
+            Date date = Date.from(time.atZone(java.time.ZoneId.systemDefault()).toInstant());
 
             Transaction transaction = new Transaction();
             transaction.setFromUserId(fromUserId);
@@ -197,7 +180,7 @@ public class NPCIController {
         String userId = request.get("userId");
         String upiPin = request.get("upiPin");
 
-        Optional<User> userOptional = userRepository.findById(userId);
+        Optional<User> userOptional = userRepository.findByUserId(userId);
         if (!userOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
         }
@@ -208,17 +191,11 @@ public class NPCIController {
         }
 
         HttpEntity<String> entity = new HttpEntity<>(getHeaders());
-        ResponseEntity<Map> response = restTemplate.exchange(
-                BANK_BASE_URL + "/account/" + userId,
-                HttpMethod.GET,
-                entity,
-                Map.class
-        );
-
+        ResponseEntity<Map> response = restTemplate.exchange(BANK_BASE_URL + "/account/" + userId, HttpMethod.GET, entity, Map.class);
         return ResponseEntity.ok(response.getBody());
     }
 
-    @GetMapping("/getAcc-phn-name")
+    @PostMapping("/getAcc-phn-name")
     public ResponseEntity<List<Map>> getAccdata(@RequestBody Map<String, String> request) {
         String phone = request.get("phone");
         String bankName = request.get("bankName");
@@ -226,16 +203,11 @@ public class NPCIController {
             return ResponseEntity.badRequest().build();
         }
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("phone", phone, "bankName", bankName), getHeaders());
-        ResponseEntity<List> response = restTemplate.exchange(
-                BANK_BASE_URL + "/getAccdata",
-                HttpMethod.GET,
-                entity,
-                List.class
-        );
+        ResponseEntity<List> response = restTemplate.exchange(BANK_BASE_URL + "/ipc/getAccdata", HttpMethod.POST, entity, List.class);
         return ResponseEntity.ok(response.getBody());
     }
 
-    @GetMapping("/getOtp")
+    @PostMapping("/getOtp")
     public ResponseEntity<Integer> getOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         if (email == null) {
@@ -247,13 +219,14 @@ public class NPCIController {
         }
         User user = userOptional.get();
         String otp = generateOtp();
+        System.out.println("\n\n==========OTP=========\n\n\t"+otp+"\n===================\n\n");
         user.setOtp(otp);
         user.setOtpGeneratedAt(LocalDateTime.now());
         userRepository.save(user);
         return ResponseEntity.ok(Integer.parseInt(otp));
     }
 
-    @GetMapping("/verifyOtp")
+    @PostMapping("/verifyOtp")
     public ResponseEntity<Boolean> verifyOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String otp = request.get("otp");
@@ -277,7 +250,7 @@ public class NPCIController {
         return ResponseEntity.ok(isValid);
     }
 
-    @GetMapping("/getCardData")
+    @PostMapping("/getCardData")
     public ResponseEntity<List<Map>> getCardData(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String bankName = request.get("bankName");
@@ -285,38 +258,26 @@ public class NPCIController {
             return ResponseEntity.badRequest().build();
         }
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("email", email, "bankName", bankName), getHeaders());
-        ResponseEntity<List> response = restTemplate.exchange(
-                BANK_BASE_URL + "/getCardData",
-                HttpMethod.GET,
-                entity,
-                List.class
-        );
+        ResponseEntity<List> response = restTemplate.exchange(BANK_BASE_URL + "/ipc/getCardData", HttpMethod.POST, entity, List.class);
         return ResponseEntity.ok(response.getBody());
     }
 
-    @GetMapping("/verifyCard")
+    @PostMapping("/verifyCard")
     public ResponseEntity<Boolean> verifyCardData(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String bankName = request.get("bankName");
         String cvv = request.get("cvv");
         String cardNumber = request.get("cardNumber");
+        String atmPin = request.get("atmPin");
         if (email == null || bankName == null || cvv == null || cardNumber == null) {
             return ResponseEntity.badRequest().build();
         }
-        HttpEntity<Map<String, String>> entity = new HttpEntity<>(
-                Map.of("email", email, "bankName", bankName, "cvv", cvv, "cardNumber", cardNumber),
-                getHeaders()
-        );
-        ResponseEntity<List> cardResponse = restTemplate.exchange(
-                BANK_BASE_URL + "/getCardData",
-                HttpMethod.GET,
-                new HttpEntity<>(Map.of("email", email, "bankName", bankName), getHeaders()),
-                List.class
-        );
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("email", email, "bankName", bankName, "cvv", cvv, "cardNumber", cardNumber), getHeaders());
+        ResponseEntity<List> cardResponse = restTemplate.exchange(BANK_BASE_URL + "/ipc/getCardData", HttpMethod.POST, new HttpEntity<>(Map.of("email", email, "bankName", bankName), getHeaders()), List.class);
         List<Map> cards = cardResponse.getBody();
         if (cards != null) {
             for (Map card : cards) {
-                if (card.get("atmCardNumber").equals(cardNumber) && card.get("cvv").equals(cvv)) {
+                if (card.get("atmCardNumber").equals(cardNumber) && card.get("cvv").equals(cvv) && card.get("pin").equals(atmPin)) {
                     return ResponseEntity.ok(true);
                 }
             }
@@ -339,6 +300,177 @@ public class NPCIController {
         user.setUpiPin(passwordEncoder.encode(upiPin));
         userRepository.save(user);
         return ResponseEntity.ok(true);
+    }
+
+    @PostMapping("/generateUpiId")
+    public ResponseEntity<String> generateAndSaveUpiId(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String bankName = request.get("bankName");
+        String phone = request.get("phone");
+
+        if (email == null || bankName == null || phone == null) {
+            return ResponseEntity.badRequest().body("Email, bankName, and phone are required");
+        }
+
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (!userOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        String lastFourDigits = phone.length() > 4 ? phone.substring(phone.length() - 4) : phone;
+        String upiId = email.split("@")[0] + lastFourDigits + "@" + bankName.toLowerCase() + ".MYpay";
+
+        User user = userOptional.get();
+        user.setUpiId(upiId);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(upiId);
+    }
+
+    @PostMapping("/getUpiId")
+    public ResponseEntity<String> getUpiId(@RequestBody Map<String, String> request) {
+        String bankName = request.get("bankName");
+        String email = request.get("email");
+        String phone = request.get("phone");
+
+        if (bankName == null || email == null || phone == null) {
+            return ResponseEntity.badRequest().body("bankName, email, and phone are required");
+        }
+
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (!userOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        User user = userOptional.get();
+        if (user.getUpiId() != null && !user.getUpiId().isEmpty()) {
+            return ResponseEntity.ok(user.getUpiId());
+        }
+
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("email", email, "phone", phone, "bankName", bankName), getHeaders());
+        ResponseEntity<String> response = restTemplate.exchange(BANK_BASE_URL + "/getUpiID", HttpMethod.POST, entity, String.class);
+
+        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+            user.setUpiId(response.getBody());
+            userRepository.save(user);
+            return ResponseEntity.ok(response.getBody());
+        }
+
+        return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+    }
+
+    @PostMapping("/searchUser")
+    public ResponseEntity<User> searchUser(@RequestBody Map<String, String> request) {
+        String query = request.get("query");
+        Optional<User> userByPhone = userRepository.findByPhone(query);
+        if (userByPhone.isPresent()) {
+            return ResponseEntity.ok(userByPhone.get());
+        }
+        Optional<User> userByUpiId = userRepository.findByUpiId(query);
+        return userByUpiId.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.ok(null));
+    }
+
+    @PostMapping("/addFriend")
+    public ResponseEntity<String> addFriend(@RequestBody Map<String, String> request) {
+        String userId = request.get("userId");
+        String identifier = request.get("identifier");
+
+        Optional<User> userOptional = userRepository.findByUserId(userId);
+        if (!userOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        User user = userOptional.get();
+        Optional<User> friendOptional = userRepository.findByPhone(identifier).isPresent() ? userRepository.findByPhone(identifier) : userRepository.findByUpiId(identifier);
+        if (!friendOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Friend not found");
+        }
+
+        User friend = friendOptional.get();
+        List<String> friends = user.getFriends() != null ? user.getFriends() : new ArrayList<>();
+        if (!friends.contains(friend.getId())) {
+            friends.add(friend.getId());
+            user.setFriends(friends);
+            userRepository.save(user);
+        }
+        return ResponseEntity.ok("Friend added successfully");
+    }
+
+    @PostMapping("/getFriends")
+    public ResponseEntity<List<User>> getFriends(@RequestBody Map<String, String> request) {
+        String userId = request.get("userId");
+        Optional<User> userOptional = userRepository.findByUserId(userId);
+        if (!userOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        User user = userOptional.get();
+        List<String> friendIds = user.getFriends() != null ? user.getFriends() : new ArrayList<>();
+        List<User> friends = new ArrayList<>();
+        for (String friendId : friendIds) {
+            userRepository.findByUserId(friendId).ifPresent(friends::add);
+        }
+        return ResponseEntity.ok(friends);
+    }
+
+    @PostMapping("/addFamilyMember")
+    public ResponseEntity<String> addFamilyMember(@RequestBody Map<String, String> request) {
+        String userId = request.get("userId");
+        String identifier = request.get("identifier");
+
+        Optional<User> userOptional = userRepository.findByUserId(userId);
+        if (!userOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        User user = userOptional.get();
+        Optional<User> memberOptional = userRepository.findByPhone(identifier).isPresent() ? userRepository.findByPhone(identifier) : userRepository.findByUpiId(identifier);
+        if (!memberOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Family member not found");
+        }
+
+        User member = memberOptional.get();
+        List<String> familyMembers = user.getFamilyMembers() != null ? user.getFamilyMembers() : new ArrayList<>();
+        if (!familyMembers.contains(member.getId())) {
+            familyMembers.add(member.getId());
+            user.setFamilyMembers(familyMembers);
+            userRepository.save(user);
+        }
+        return ResponseEntity.ok("Family member added successfully");
+    }
+
+    @PostMapping("/getFamilyMembers")
+    public ResponseEntity<List<User>> getFamilyMembers(@RequestBody Map<String, String> request) {
+        String userId = request.get("userId");
+        System.out.println("Gen Family members invoked");
+        System.out.println("userId: " + userId);
+
+        Optional<User> userOptional = userRepository.findByUserId(userId);
+
+
+        if (!userOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        User user = userOptional.get();
+        System.out.println("Found family members Nigga ,"+user);
+        List<String> memberIds = user.getFamilyMembers() != null ? user.getFamilyMembers() : new ArrayList<>();
+        List<User> members = new ArrayList<>();
+        System.out.println("memberIds "+memberIds);
+        for (String memberId : memberIds) {
+            userRepository.findByUserId(memberId).ifPresent(members::add);
+        }
+        return ResponseEntity.ok(members);
+    }
+
+    @PostMapping("/verifyPin")
+    public ResponseEntity<Boolean> verifyPin(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String upiPin = request.get("upiPin");
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (!userOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        User user = userOptional.get();
+        return ResponseEntity.ok(passwordEncoder.matches(upiPin, user.getUpiPin()));
     }
 
     private String generateUpiId(String email) {

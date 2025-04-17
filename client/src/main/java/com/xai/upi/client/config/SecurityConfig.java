@@ -26,26 +26,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .addFilterBefore(new FonltHeaderFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                new AntPathRequestMatcher("/"),
+                                new AntPathRequestMatcher("/**"),
                                 new AntPathRequestMatcher("/auth/signup"),
                                 new AntPathRequestMatcher("/auth/login"),
                                 new AntPathRequestMatcher("/auth/setUpUpiPin"),
                                 new AntPathRequestMatcher("/auth/otpVerification"),
                                 new AntPathRequestMatcher("/auth/cardDetails"),
-                                new AntPathRequestMatcher("/auth/finalUpiPin")
+                                new AntPathRequestMatcher("/auth/finalUpiPin"),
+                                new AntPathRequestMatcher("/{bank}/**"),
+                                new AntPathRequestMatcher("/css/**"),
+                                new AntPathRequestMatcher("/js/**"),
+                                new AntPathRequestMatcher("/images/**")
                         ).permitAll()
-                        .antMatchers("/api/ipc/**", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/ipc/**")).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/auth/login")
                         .successHandler((request, response, authentication) -> {
                             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-                            User user = userRepository.findByUsername(userDetails.getUsername());
-                            if (user != null && user.isIsupiPinSer()) {
+                            User user = userRepository.findByEmail(userDetails.getUsername());
+                            if (user != null && user.isUpiPinSet()) {
                                 response.sendRedirect("/dashboard");
                             } else {
                                 response.sendRedirect("/auth/setUpUpiPin");
@@ -74,7 +77,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authBuilder.authenticationProvider(customAuthenticationProvider());
+        authBuilder.authenticationProvider(customAuthenticationProvider()); // calling the bean method directly
         return authBuilder.build();
     }
 }

@@ -5,6 +5,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.HashMap;
 
 public class CustomUserDetails implements UserDetails {
 
@@ -44,8 +46,8 @@ public class CustomUserDetails implements UserDetails {
         return true;
     }
 
-    public Integer getLoginPin() { // Corrected to getLoginPin
-        return loginPin != null ? Integer.parseInt(loginPin) : null;
+    public String getLoginPin() { // Changed to String to avoid parsing issues
+        return loginPin;
     }
 
     @Override
@@ -74,4 +76,16 @@ public class CustomUserDetails implements UserDetails {
     public String getBankAccountId() {
         return bankAccountId;
     }
+
+    public String getEmail() {
+        return email;
+    }
+    public Map<String, String> getFullUserDetails() {
+        Map<String, String> userDetails = new HashMap<>();
+        userDetails.put("id", userId);
+        userDetails.put("email", email);
+        userDetails.put("upiId", upiId);
+        return userDetails;
+    }
+
 }

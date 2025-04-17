@@ -38,44 +38,70 @@
             background-color: #1e3c72;
             border-color: #1e3c72;
         }
+        .error-message {
+            color: #dc3545;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
 <div class="container animate__animated animate__fadeIn">
     <h1>Set Up Your UPI PIN</h1>
-    <form th:action="@{/{bank}/get-account-details(bank=${bank})}" method="get">
-        <input type="hidden" name="userId" th:value="${user.id}">
+
+    <!-- Error message display -->
+    <div th:if="${error != null}" class="alert alert-danger" role="alert">
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Initial form for bank and phone -->
+    <form th:action="@{/get-account-details}" method="get" th:unless="${accounts != null}">
+        <input type="hidden" name="userId" th:value="${user?.id ?: ''}">
         <div class="mb-3">
             <label for="bankSelect" class="form-label">Select Your Bank</label>
             <select class="form-select" id="bankSelect" name="bankName" required>
                 <option value="">Choose a bank...</option>
-                <option value="sbi">State Bank of India</option>
-                <option value="hdfc">HDFC Bank</option>
-                <option value="icici">ICICI Bank</option>
-                <option value="axis">Axis Bank</option>
+                <option th:each="bankOpt : ${banks ?: T(java.util.Arrays).asList('sbb','camera','united','axis')}"
+                        th:value="${bankOpt}"
+                        th:text="${#strings.capitalize(bankOpt)}">
+                </option>
             </select>
         </div>
         <div class="mb-3">
             <label for="mobileNumber" class="form-label">Mobile Number</label>
-            <input type="tel" class="form-control" id="mobileNumber" name="phone" th:value="${user.phone}" pattern="\d{10}" required>
+            <input type="tel" class="form-control" id="mobileNumber" name="phone"
+                   th:value="${user?.phone ?: ''}" pattern="\d{10}" required>
         </div>
         <button type="submit" class="btn btn-primary w-100">Proceed</button>
     </form>
-    <div th:if="${not isNull}">
+
+
+    <!-- Account selection (shown after initial form submission) -->
+    <div th:if="${accounts != null and not accounts.empty}">
         <h3>Select an Account</h3>
         <form th:action="@{/{bank}/selectedAccount(bank=${bank})}" method="post">
-            <div th:each="account : ${accounts}" class="form-check">
-                <input class="form-check-input" type="radio" name="accountNumber" th:value="${account.accountNumber}" th:id="'account' + ${account.id}">
-                <label class="form-check-label" th:for="'account' + ${account.id}">
-                    <span th:text="${account.bankName} + ' - ' + ${account.accountNumber}"></span>
+            <div th:each="account : ${accounts}" class="form-check mb-2">
+                <input class="form-check-input" type="radio"
+                       name="accountNumber"
+                       th:value="${account.accountNumber}"
+                       th:id="${'account-' + account.accountNumber}"
+                       required>
+                <label class="form-check-label" th:for="${'account-' + account.accountNumber}">
+                    <span th:text="${#strings.capitalize(account.bankName)} + ' - ' + ${account.accountNumber}"></span>
                 </label>
             </div>
             <input type="hidden" name="bankName" th:value="${bank}">
             <button type="submit" class="btn btn-primary w-100 mt-3">Select Account</button>
         </form>
     </div>
-    <div th:if="${isNull}">
-        <p>No accounts found for this phone and bank.</p>
+
+    <!-- No accounts found message -->
+    <div th:if="${accounts != null and accounts.empty}">
+        <div class="alert alert-warning mt-3">
+            No accounts found for this phone and bank.
+        </div>
+        <a th:href="@{/auth/setUpUpiPin}" class="btn btn-secondary w-100">
+            Try Again
+        </a>
     </div>
 </div>
 
@@ -87,6 +113,14 @@
         $('#bankSelect').select2({
             placeholder: "Select a bank",
             allowClear: true
+        });
+
+        // Client-side validation for phone number
+        $('#mobileNumber').on('input', function() {
+            const phone = $(this).val();
+            if (!/^\d{0,10}$/.test(phone)) {
+                $(this).val(phone.substring(0, 10));
+            }
         });
     });
 </script>

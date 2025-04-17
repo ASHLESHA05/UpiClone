@@ -3,7 +3,7 @@ package com.xai.upi.client.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document
+@Document(collection = "users")
 public class User {
 
     @Id
@@ -16,15 +16,9 @@ public class User {
     private String password;
     private String username;
     private Integer loginPin;
-    private boolean isupiPinSer = false;
+    private boolean upiPinSet = false;
+
     // Getters and Setters
-
-
-    public boolean isIsupiPinSer() {
-        return isupiPinSer;
-    }
-    public void setIsupiPinSer(boolean isupiPinSer) {this.isupiPinSer = isupiPinSer;}
-
     public String getId() {
         return id;
     }
@@ -95,5 +89,13 @@ public class User {
 
     public void setLoginPin(Integer loginPin) {
         this.loginPin = loginPin;
+    }
+
+    public boolean isUpiPinSet() {
+        return upiPinSet;
+    }
+
+    public void setUpiPinSet(boolean upiPinSet) {
+        this.upiPinSet = upiPinSet;
     }
 }

@@ -1,201 +1,888 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Dashboard</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-
+    <title>MyPay UPI Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
+        :root {
+            --primary-color: #2a5298;
+            --secondary-color: #1e3c72;
+            --accent-color: #6b48ff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --light-bg: #f8f9fa;
+            --dark-text: #212529;
+            --family-mode-color: #ff6b6b;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            transition: all 0.3s ease;
+        }
+
+        body.family-mode {
+            --primary-color: #ff6b6b;
+            --secondary-color: #ff4757;
+            background-color: #fff0f0;
+        }
+
+        .navbar-brand img {
+            height: 30px;
+        }
+
+        .mode-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            border-radius: 15px;
+            background-color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-toggle .toggle-handle {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 26px;
+            height: 26px;
+            background-color: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .mode-toggle.active .toggle-handle {
+            left: 32px;
         }
 
         .dashboard-header {
-            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .options-grid {
-            display: flex;
+        .dashboard-header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+        }
+
+        .qr-code-container {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .qr-code-container:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .qr-code-container img {
+            width: 50px;
+            height: 50px;
+        }
+
+        .balance-display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 1rem;
             margin-bottom: 2rem;
         }
 
-        .option-card {
-            flex: 1;
-            padding: 1rem;
-            background-color: #f4f4f4;
-            text-align: center;
-            border-radius: 10px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background-color: #007bff;
-            color: white;
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 12px;
+            padding: 1.2rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
             text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .transaction-list {
-            list-style-type: none;
-            padding-left: 0;
-        }
-
-        .transaction-list li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .qr-section {
-            margin-top: 2rem;
-        }
-
-        .qr-scan-container {
-            margin-top: 10px;
+            color: var(--dark-text);
             position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(42, 82, 152, 0.1);
+            top: 100%;
+            left: 0;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover::after {
+            top: 0;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            color: var(--primary-color);
+        }
+
+        .action-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            transition: transform 0.3s ease;
+        }
+
+        .action-btn:hover i {
+            transform: scale(1.2);
+        }
+
+        .offers-section, .friend-circle-section, .family-mode-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .offer-card {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .offer-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .offer-card img {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-right: 1rem;
+        }
+
+        .transaction-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .transaction-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--light-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            color: var(--primary-color);
+        }
+
+        .family-mode-section {
             display: none;
         }
 
-        .qr-scan-container video {
-            width: 300px;
-            height: 200px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
+        body.family-mode .family-mode-section {
+            display: block;
         }
 
-        .qr-btns {
-            margin-top: 10px;
+        body.family-mode .normal-mode-section {
+            display: none;
         }
 
-        .close-btn {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            background: red;
-            color: white;
-            border: none;
+        .family-member, .friend-card {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .family-member:hover, .friend-card:hover {
+            background: #f8f9fa;
+        }
+
+        .family-member:last-child, .friend-card:last-child {
+            border-bottom: none;
+        }
+
+        .family-member-avatar {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            font-size: 16px;
-            width: 30px;
-            height: 30px;
+            background-color: var(--light-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            color: var(--family-mode-color);
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .floating-action-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             cursor: pointer;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        .floating-action-btn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(42, 82, 152, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(42, 82, 152, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(42, 82, 152, 0); }
+        }
+
+        .modal-content {
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: none;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .modal-footer {
+            border-top: none;
+        }
+
+        @media (max-width: 768px) {
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .balance-display {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
-<h1>tHIS IS My DASHBOARD </h1>
-<div class="container">
-    <div class="dashboard-header">
-        <h1>Welcome, <span th:text="${user.name}"></span></h1>
-        <p>UPI ID: <span th:text="${user.upiId}"></span></p>
-        <p>Balance: ₹<span th:text="${balance}"></span></p>
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img src="/images/mypay-logo.png" alt="MyPay">
+        </a>
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                <span class="me-2">Family Mode</span>
+                <div class="mode-toggle" id="modeToggle">
+                    <div class="toggle-handle"></div>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="#" class="dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                    <i class="fas fa-user-circle fa-2x"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>Profile</a></li>
+                    <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <div class="dashboard-header animate__animated animate__fadeIn">
+        <div class="qr-code-container" data-bs-toggle="modal" data-bs-target="#qrModal">
+            <img th:src="@{'data:image/png;base64,' + ${qrCode}}" alt="UPI QR Code">
+        </div>
+        <h5>Your Balance</h5>
+        <div class="balance-display">₹<span id="balanceValue" th:text="${#numbers.formatDecimal(balance, 0, 'COMMA', 2, 'POINT')}"></span></div>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <small class="text-light">UPI ID</small>
+                <p class="mb-0"><strong th:text="${upiId}"></strong></p>
+            </div>
+            <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#balanceModal">
+                <i class="fas fa-eye me-1"></i> View Details
+            </button>
+        </div>
     </div>
 
-    <div class="options-grid">
-        <div class="option-card">
-            <a th:href="@{/transaction}" class="btn">Make Payment</a>
+    <div class="quick-actions animate__animated animate__fadeInUp">
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#sendMoneyModal">
+            <i class="fas fa-paper-plane"></i>
+            <span>Send</span>
+        </a>
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#requestMoneyModal">
+            <i class="fas fa-hand-holding-usd"></i>
+            <span>Request</span>
+        </a>
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#scanQRModal">
+            <i class="fas fa-qrcode"></i>
+            <span>Scan</span>
+        </a>
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#bankTransferModal">
+            <i class="fas fa-university"></i>
+            <span>Bank Transfer</span>
+        </a>
+    </div>
+
+    <div class="offers-section normal-mode-section animate__animated animate__fadeInUp">
+        <h5 class="mb-3"><i class="fas fa-tag me-2 text-warning"></i> UPI Offers For You</h5>
+        <div class="offer-card">
+            <img src="https://via.placeholder.com/60" alt="Offer 1">
+            <div class="flex-grow-1">
+                <h6 class="mb-1">Get 10% Cashback</h6>
+                <p class="mb-0 text-muted small">On all mobile recharges above ₹200</p>
+            </div>
+            <button class="btn btn-sm btn-primary">Claim Now</button>
         </div>
-        <div class="option-card">
-            <a th:href="@{/checkBalance}" class="btn">Check Balance</a>
-        </div>
-        <div class="option-card">
-            <a th:href="@{/generateQr}" class="btn">Generate QR</a>
+        <div class="offer-card">
+            <img src="https://via.placeholder.com/60" alt="Offer 2">
+            <div class="flex-grow-1">
+                <h6 class="mb-1">Free Delivery</h6>
+                <p class="mb-0 text-muted small">Use UPI on FoodApp and get free delivery</p>
+            </div>
+            <button class="btn btn-sm btn-primary">Claim Now</button>
         </div>
     </div>
 
-    <h2>Transaction History</h2>
-    <ul class="transaction-list">
-        <li th:each="txn : ${transactions}" th:text="${txn.amount} + ' - ' + ${txn.status} + ' - ' + ${txn.timestamp}"></li>
-    </ul>
+    <div class="friend-circle-section normal-mode-section animate__animated animate__fadeInUp">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-user-friends me-2 text-primary"></i> Friend Circle</h5>
+            <div>
+                <input type="text" id="friendSearch" class="form-control d-inline-block w-auto" placeholder="Phone or UPI ID">
+                <button class="btn btn-sm btn-primary ms-2" onclick="addFriend()">Add Friend</button>
+            </div>
+        </div>
+        <div th:each="friend : ${friends}" class="friend-card">
+            <div class="family-member-avatar" th:text="${friend.name.substring(0,2).toUpperCase()}"></div>
+            <div class="flex-grow-1">
+                <h6 class="mb-1" th:text="${friend.name}"></h6>
+                <p class="mb-0 text-muted small" th:text="${friend.upiId}"></p>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="sendMoneyToFriend('${friend.upiId}')"><i class="fas fa-paper-plane"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="requestMoneyFromFriend('${friend.upiId}')"><i class="fas fa-hand-holding-usd"></i></button>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(friends)}" class="text-center py-4 text-muted">
+            <i class="fas fa-user-friends fa-2x mb-3"></i>
+            <p>No friends added yet</p>
+        </div>
+    </div>
 
-    <div class="qr-section">
-        <h2>Scan QR</h2>
-        <button onclick="startScan()">Start Scan</button>
+    <div class="family-mode-section animate__animated animate__fadeInUp">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-users me-2" style="color: var(--family-mode-color);"></i> Family Group</h5>
+            <div>
+                <button class="btn btn-sm" style="background-color: var(--family-mode-color); color: white;" data-bs-toggle="modal" data-bs-target="#addFamilyModal">
+                    <i class="fas fa-plus me-1"></i> Add Member
+                </button>
+                <button class="btn btn-sm btn-outline-secondary ms-2" data-bs-toggle="modal" data-bs-target="#splitBillModal">
+                    <i class="fas fa-receipt me-1"></i> Split Bill
+                </button>
+            </div>
+        </div>
+        <div th:each="member : ${familyMembers}" class="family-member">
+            <div class="family-member-avatar" th:text="${member.name.substring(0,2).toUpperCase()}"></div>
+            <div class="flex-grow-1">
+                <h6 class="mb-1" th:text="${member.name}"></h6>
+                <p class="mb-0 text-muted small" th:text="${member.upiId}"></p>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary me-1" onclick="sendMoneyToFamily('${member.upiId}')"><i class="fas fa-paper-plane"></i></button>
+                <button class="btn btn-sm btn-outline-primary" onclick="requestMoneyFromFamily('${member.upiId}')"><i class="fas fa-hand-holding-usd"></i></button>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(familyMembers)}" class="text-center py-4 text-muted">
+            <i class="fas fa-users fa-2x mb-3"></i>
+            <p>No family members added yet</p>
+        </div>
+    </div>
 
-        <div class="qr-scan-container" id="qrContainer">
-            <button class="close-btn" onclick="stopScan()">✖</button>
-            <video id="video" autoplay></video>
-            <canvas id="canvas" hidden></canvas>
+    <div class="normal-mode-section animate__animated animate__fadeInUp">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-history me-2"></i> Recent Transactions</h5>
+            <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div th:each="txn : ${transactions}" class="transaction-card">
+            <div class="transaction-icon">
+                <i th:class="${txn.type == 'CREDIT' ? 'fas fa-arrow-down text-success' : 'fas fa-arrow-up text-danger'}"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="mb-1" th:text="${txn.description} ?: 'UPI Transaction'"></h6>
+                <small class="text-muted" th:text="${txn.formattedDate}"></small>
+            </div>
+            <div class="text-end">
+                <span th:class="${txn.type == 'CREDIT' ? 'text-success' : 'text-danger'}"
+                      th:text="${txn.type == 'CREDIT' ? '+' : '-'} + '₹' + ${#numbers.formatDecimal(txn.amount, 0, 'COMMA', 2, 'POINT')}">
+                </span>
+                <br>
+                <small th:text="${txn.status}"
+                       th:class="${txn.status == 'SUCCESS' ? 'text-success' : txn.status == 'FAILED' ? 'text-danger' : 'text-warning'}">
+                </small>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(transactions)}" class="text-center py-4 text-muted">
+            <i class="fas fa-exchange-alt fa-2x mb-3"></i>
+            <p>No transactions yet</p>
+        </div>
+    </div>
+</div>
 
-            <div class="qr-btns">
-                <button onclick="scanQR()">Scan</button>
+<div class="floating-action-btn" data-bs-toggle="modal" data-bs-target="#quickActionModal">
+    <i class="fas fa-plus"></i>
+</div>
+
+<div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <h5 class="modal-title">Your UPI QR Code</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img th:src="@{'data:image/png;base64,' + ${qrCode}}" alt="UPI QR Code" class="img-fluid mb-3" style="max-width: 250px;">
+                <p class="mb-1"><strong th:text="${upiId}"></strong></p>
+                <p class="text-muted small">Scan this QR code to receive payments</p>
+                <button class="btn btn-primary mt-2">
+                    <i class="fas fa-download me-1"></i> Download QR
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const qrContainer = document.getElementById('qrContainer');
-    let stream;
+<div class="modal fade" id="balanceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <h5 class="modal-title">Account Balance</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Available Balance</span>
+                    <strong>₹<span th:text="${#numbers.formatDecimal(balance, 0, 'COMMA', 2, 'POINT')}"></span></strong>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Linked Bank Account</span>
+                    <strong th:text="${bank} + ' ••••' + ${#strings.substring(accountNumber, #strings.length(accountNumber)-4)}"></strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span>UPI ID</span>
+                    <strong th:text="${upiId}"></strong>
+                </div>
+                <div class="mt-4">
+                    <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#changePinModal">
+                        <i class="fas fa-lock me-1"></i> Change UPI PIN
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    function startScan() {
-        qrContainer.style.display = 'block';
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(s => {
-                stream = s;
-                video.srcObject = stream;
-                video.setAttribute("playsinline", true);
-            })
-            .catch(err => {
-                Toastify({
-                    text: "Camera access denied: " + err.message,
-                    duration: 3000,
-                    gravity: "top",
-                    position: "right",
-                    backgroundColor: "#f44336"
-                }).showToast();
+<div class="modal fade" id="changePinModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <h5 class="modal-title">Change UPI PIN</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePinForm">
+                    <div class="mb-3">
+                        <label class="form-label">Current UPI PIN</label>
+                        <input type="password" class="form-control" pattern="\d{6}" maxlength="6" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New UPI PIN</label>
+                        <input type="password" class="form-control" pattern="\d{6}" maxlength="6" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm New UPI PIN</label>
+                        <input type="password" class="form-control" pattern="\d{6}" maxlength="6" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-1"></i> Update PIN
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sendMoneyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Money</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sendMoneyForm" th:action="@{/transaction/form}" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Recipient (Phone or UPI ID)</label>
+                        <input type="text" class="form-control" id="sendRecipient" name="receiverPhone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" class="form-control" name="amount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">UPI PIN</label>
+                        <input type="password" class="form-control" name="upiPin" pattern="\d{6}" maxlength="6" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="requestMoneyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <h5 class="modal-title">Request Money</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="requestMoneyForm" th:action="@{/transaction/request}" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Recipient (Phone or UPI ID)</label>
+                        <input type="text" class="form-control" id="requestRecipient" name="receiverPhone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" class="form-control" name="amount" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="scanQRModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <h5 class="modal-title">Scan QR Code</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">Scan a QR code to make a payment</p>
+                <div id="qrScanner" class="border p-3 text-center">QR Scanner Placeholder</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bankTransferModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <h5 class="modal-title">Bank Transfer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bankTransferForm" th:action="@{/transaction/bankTransfer}" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Account Number</label>
+                        <input type="text" class="form-control" name="accountNumber" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">IFSC Code</label>
+                        <input type="text" class="form-control" name="ifscCode" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" class="form-control" name="amount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">UPI PIN</label>
+                        <input type="password" class="form-control" name="upiPin" pattern="\d{6}" maxlength="6" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Transfer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addFamilyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Family Member</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addFamilyForm" th:action="@{/family/add}" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Phone or UPI ID</label>
+                        <input type="text" class="form-control" id="familySearch" name="identifier" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Add</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="splitBillModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <h5 class="modal-title">Split Bill</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="splitBillForm">
+                    <div class="mb-3">
+                        <label class="form-label">Bill Amount</label>
+                        <input type="number" class="form-control" id="billAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Select Members</label>
+                        <select multiple class="form-control" id="splitMembers" required>
+                            <option th:each="member : ${familyMembers}" th:value="${member.id}" th:text="${member.name}"></option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" onclick="calculateSplit()">Calculate & Request</button>
+                </form>
+                <div id="splitResult" class="mt-3 text-center" style="display: none;">
+                    <p>Amount per person: ₹<span id="splitAmount"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="quickActionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <button class="btn btn-light w-100 h-100 py-3" data-bs-toggle="modal" data-bs-target="#sendMoneyModal">
+                            <i class="fas fa-paper-plane fa-2x mb-2"></i>
+                            <div>Send Money</div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-light w-100 h-100 py-3" data-bs-toggle="modal" data-bs-target="#requestMoneyModal">
+                            <i class="fas fa-hand-holding-usd fa-2x mb-2"></i>
+                            <div>Request Money</div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-light w-100 h-100 py-3" data-bs-toggle="modal" data-bs-target="#scanQRModal">
+                            <i class="fas fa-qrcode fa-2x mb-2"></i>
+                            <div>Scan QR</div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-light w-100 h-100 py-3" data-bs-toggle="modal" data-bs-target="#bankTransferModal">
+                            <i class="fas fa-university fa-2x mb-2"></i>
+                            <div>Bank Transfer</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const balanceElement = document.getElementById('balanceValue');
+        if (balanceElement) {
+            const balance = parseFloat(balanceElement.textContent.replace(/,/g, ''));
+            let current = 0;
+            const increment = balance / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= balance) {
+                    current = balance;
+                    clearInterval(timer);
+                }
+                balanceElement.textContent = current.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }, 20);
+        }
+    });
+
+    const modeToggle = document.getElementById('modeToggle');
+    modeToggle.addEventListener('click', function() {
+        this.classList.toggle('active');
+        document.body.classList.toggle('family-mode');
+        localStorage.setItem('familyMode', document.body.classList.contains('family-mode'));
+    });
+
+    if (localStorage.getItem('familyMode') === 'true') {
+        modeToggle.classList.add('active');
+        document.body.classList.add('family-mode');
+    }
+
+    function addFriend() {
+        const searchValue = document.getElementById('friendSearch').value;
+        fetch('/api/searchFriend?query=' + encodeURIComponent(searchValue))
+            .then(response => response.json())
+            .then(data => {
+                if (data.found) {
+                    fetch('/friends/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ identifier: searchValue })
+                    }).then(() => location.reload());
+                } else {
+                    if (confirm('User not found. Send invitation?')) {
+                        const phone = prompt('Enter recipient phone number:');
+                        if (phone) {
+                            fetch('/api/sendInvitation?phone=' + encodeURIComponent(phone), { method: 'POST' })
+                                .then(response => {
+                                    if (response.ok) alert('Invitation sent!');
+                                    else alert('Failed to send invitation.');
+                                });
+                        }
+                    }
+                }
             });
     }
 
-    function stopScan() {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-        qrContainer.style.display = 'none';
+    function sendMoneyToFriend(upiId) {
+        document.getElementById('sendRecipient').value = upiId;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('sendMoneyModal')).show();
     }
 
-    function scanQR() {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-        if (code) {
-            window.location.href = '/transaction?receiverPhone=' + code.data.split('@')[0];
-        } else {
-            Toastify({
-                text: "No QR code detected",
-                duration: 3000,
-                gravity: "top",
-                position: "right",
-                backgroundColor: "#f44336"
-            }).showToast();
-        }
+    function requestMoneyFromFriend(upiId) {
+        document.getElementById('requestRecipient').value = upiId;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('requestMoneyModal')).show();
     }
 
-    const error = /*[[${error}]]*/ null;
-    if (error) {
-        Toastify({
-            text: error,
-            duration: 3000,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#f44336"
-        }).showToast();
+    function sendMoneyToFamily(upiId) {
+        document.getElementById('sendRecipient').value = upiId;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('sendMoneyModal')).show();
     }
+
+    function requestMoneyFromFamily(upiId) {
+        document.getElementById('requestRecipient').value = upiId;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('requestMoneyModal')).show();
+    }
+
+    function calculateSplit() {
+        const amount = parseFloat(document.getElementById('billAmount').value);
+        const members = document.getElementById('splitMembers').selectedOptions;
+        const numMembers = members.length + 1;
+        const splitAmount = amount / numMembers;
+
+        document.getElementById('splitAmount').textContent = splitAmount.toFixed(2);
+        document.getElementById('splitResult').style.display = 'block';
+
+        Array.from(members).forEach(member => {
+            fetch('/transaction/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ receiverPhone: member.value, amount: splitAmount })
+            });
+        });
+    }
+
+    document.getElementById('changePinForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const newPin = this.querySelector('input[type="password"]:nth-of-type(2)').value;
+        const confirmPin = this.querySelector('input[type="password"]:nth-of-type(3)').value;
+
+        if (newPin !== confirmPin) {
+            alert('PINs do not match!');
+            return;
+        }
+
+        if (newPin.length !== 6 || !/^\d+$/.test(newPin)) {
+            alert('Please enter a valid 6-digit PIN');
+            return;
+        }
+
+        fetch('/settings/changePin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentPin: this.querySelector('input[type="password"]:nth-of-type(1)').value, newPin: newPin })
+        }).then(response => {
+            if (response.ok) {
+                alert('PIN changed successfully!');
+                bootstrap.Modal.getInstance(document.getElementById('changePinModal')).hide();
+            } else {
+                alert('Failed to change PIN.');
+            }
+        });
+    });
 </script>
 </body>
 </html>

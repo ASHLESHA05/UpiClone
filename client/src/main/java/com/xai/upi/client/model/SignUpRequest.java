@@ -9,8 +9,11 @@ public class SignUpRequest {
     private String password;
     private String username;
     private Integer loginPin;
+    private String bankName;
 
     // Getters and Setters
+    public String getBankName(){return bankName;}
+    public void setBankName(String bankName){this.bankName = bankName;}
 
     public String getName() {
         return name;

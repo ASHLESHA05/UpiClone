@@ -8,11 +8,13 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.xai.upi.client.model.TransactionRequest;
 import com.xai.upi.client.security.CustomUserDetails;
 import com.xai.upi.client.service.UserService;
+import com.xai.upi.client.service.UPIService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -25,6 +27,7 @@ public class TransactionController {
 
     @Autowired
     private UserService userService;
+    private UPIService upiService;
 
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
@@ -33,7 +36,7 @@ public class TransactionController {
             Map<String, Object> userData = userService.getUserData(userId);
             model.addAttribute("user", userData);
             model.addAttribute("balance", userData.get("balance"));
-            List<Map> transactions = userService.getTransactions((String) userData.get("upiId"));
+            List<Map> transactions = upiService.getTransactions((String) userData.get("upiId"));
             model.addAttribute("transactions", transactions);
             return "dashboard";
         } catch (Exception e) {
@@ -60,7 +63,7 @@ public class TransactionController {
     @PostMapping("/form")
     public String transactionSubmit(@ModelAttribute TransactionRequest request, Model model) {
         try {
-            Map<String, String> response = userService.performTransaction(request);
+            Map<String, String> response = upiService.performTransaction(request);
             model.addAttribute("message", response.get("message"));
             return "result";
         } catch (Exception e) {
@@ -87,7 +90,7 @@ public class TransactionController {
     @PostMapping("/checkBalance")
     public String checkBalanceSubmit(@RequestParam String userId, @RequestParam String upiPin, Model model) {
         try {
-            Map<String, Object> response = userService.checkBalance(userId, upiPin);
+            Map<String, Object> response = upiService.checkBalance(userId, upiPin);
             model.addAttribute("balance", response.get("balance"));
             return "balanceResult";
         } catch (Exception e) {

@@ -1,8 +1,10 @@
 package com.xai.upi.npci.model;
-import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Document(collection = "users")
 public class User {
@@ -18,7 +20,12 @@ public class User {
     private String otp;
     private LocalDateTime otpGeneratedAt;
     private String password;
-    // Getters and Setters
+    private List<String> friends;
+    private List<String> familyMembers;
+    private String userId;
+
+    public String getUserId(){ return userId; }
+    public void setUserId(String userId){ this.userId = userId; }
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getName() { return name; }
@@ -38,9 +45,11 @@ public class User {
     public String getOtp() { return otp; }
     public void setOtp(String otp) { this.otp = otp; }
     public LocalDateTime getOtpGeneratedAt() { return otpGeneratedAt; }
-    public void setOtpGeneratedAt(LocalDateTime otpGeneratedAt) {this.otpGeneratedAt = otpGeneratedAt; }
+    public void setOtpGeneratedAt(LocalDateTime otpGeneratedAt) { this.otpGeneratedAt = otpGeneratedAt; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-    public String getUPiPin() { return upiPin; }
-    public void setUPiPin(String upiPin) { this.upiPin = upiPin; }
+    public List<String> getFriends() { return friends; }
+    public void setFriends(List<String> friends) { this.friends = friends; }
+    public List<String> getFamilyMembers() { return familyMembers; }
+    public void setFamilyMembers(List<String> familyMembers) { this.familyMembers = familyMembers; }
 }
