@@ -17,8 +17,17 @@ public class User {
     private String username;
     private Integer loginPin;
     private boolean upiPinSet = false;
-
+    private String upiId;
     // Getters and Setters
+
+    public String getUpiId() {
+        return upiId;
+    }
+
+    public void setUpiId(String upiId) {
+        this.upiId = upiId;
+    }
+
     public String getId() {
         return id;
     }

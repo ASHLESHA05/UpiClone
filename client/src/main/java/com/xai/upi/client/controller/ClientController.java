@@ -2,6 +2,7 @@ package com.xai.upi.client.controller;
 
 import com.xai.upi.client.model.Account;
 import com.xai.upi.client.model.User;
+import com.xai.upi.client.model.Notification;
 import com.xai.upi.client.repository.UserRepository;
 import com.xai.upi.client.security.CustomUserDetails;
 import com.xai.upi.client.service.UPIService;
@@ -10,6 +11,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import com.xai.upi.client.service.NotificationService;
+import com.xai.upi.client.model.TransactionDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -23,35 +26,30 @@ public class ClientController {
     @Autowired
     private UPIService upiService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         String userId = userDetails.getUserId();
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        // Initialize defaults
         String accountNumber = "N/A";
         Double balance = 0.0;
 
-        // Fetch bank accounts only if phone and bankName are not null
         if (user.getPhone() != null && user.getBankName() != null) {
             List<Account> accounts = upiService.getAccountdetails(user.getPhone(), user.getBankName());
-            System.out.println("\n\n===Accounts===\n"+accounts+"\n\n");
             if (accounts != null && !accounts.isEmpty()) {
                 accountNumber = accounts.get(0).getAccountNumber();
                 balance = accounts.get(0).getBalance();
             }
-        } else {
-            System.err.println("Phone or bankName is null for user: " + userId);
         }
 
-        // Fetch UPI details
         String upiId = upiService.getUpiId(user.getBankName(), user.getEmail(), user.getPhone());
-
-        // Fetch transaction history
-        List<Map> transactions = upiService.getTransactions(upiId);
-
-        // Fetch family members and friends
         List<User> familyMembers = upiService.getFamilyMembers(userId);
         List<User> friends = upiService.getFriends(userId);
+        List<Notification> notifications = notificationService.getPendingNotifications(userId);
+        List<TransactionDTO> transactions = upiService.getTransactions(upiId);
+
 
         model.addAttribute("user", user);
         model.addAttribute("balance", balance);
@@ -61,7 +59,8 @@ public class ClientController {
         model.addAttribute("transactions", transactions);
         model.addAttribute("familyMembers", familyMembers);
         model.addAttribute("friends", friends);
-        model.addAttribute("qrCode", upiService.generateQrCode(upiId)); // Assuming this method exists
+        model.addAttribute("qrCode", upiService.generateQrCode(upiId));
+        model.addAttribute("notifications", notifications);
 
         return "dashboard";
     }

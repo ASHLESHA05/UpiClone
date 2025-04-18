@@ -5,6 +5,8 @@ import com.xai.upi.client.model.SetUpiPinRequest;
 import com.xai.upi.client.model.TransactionRequest;
 import com.xai.upi.client.model.User;
 import com.xai.upi.client.model.temSave;
+import com.xai.upi.client.model.TransactionDTO;
+import com.xai.upi.client.repository.*;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
@@ -14,6 +16,8 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
+import java.util.Collections;
+
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
@@ -26,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 
 @Service
 public class UPIService {
@@ -35,6 +41,9 @@ public class UPIService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private final UserStatusService userStatusService;
 
@@ -63,6 +72,7 @@ public class UPIService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Internal-Token", INTERNAL_TOKEN);
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         return headers;
     }
 
@@ -83,17 +93,52 @@ public class UPIService {
         return response.getBody();
     }
 
-    public List<Map> getTransactions(String upiId) {
+    public List<TransactionDTO> getTransactions(String upiId) {
         HttpEntity<String> entity = new HttpEntity<>(getHeaders());
-        ResponseEntity<List> response = restTemplate.exchange(BASE_URL + "/ipc/transactions?upiId=" + upiId, HttpMethod.GET, entity, List.class);
-        return response.getBody();
+
+        ResponseEntity<List<com.xai.upi.client.model.Transaction>> response = restTemplate.exchange(
+                BASE_URL + "/ipc/transactions?upiId=" + upiId,
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<List<com.xai.upi.client.model.Transaction>>() {}
+        );
+
+        return response.getBody().stream()
+                .map(tx -> new TransactionDTO(tx, upiId))
+                .collect(Collectors.toList());
     }
+
+
+
 
     public Map<String, String> performTransaction(TransactionRequest request) {
         HttpEntity<TransactionRequest> entity = new HttpEntity<>(request, getHeaders());
-        ResponseEntity<Map> response = restTemplate.exchange(BASE_URL + "/ipc/transaction", HttpMethod.POST, entity, Map.class);
-        return response.getBody();
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    BASE_URL + "/ipc/transaction",
+                    HttpMethod.POST,
+                    entity,
+                    Map.class
+            );
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                return response.getBody();
+            } else {
+                return Map.of("message", "Transaction failed with status: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown error";
+            if (errorMsg.contains("Insufficient balance")) {
+                return Map.of("message", "Insufficient balance");
+            } else if (errorMsg.contains("User not found")) {
+                return Map.of("message", "Receiver not found");
+            }
+            return Map.of("message", "Transaction error: " + errorMsg);
+        }
     }
+
+
+
+
 
     public Map<String, Object> checkBalance(String userId, String upiPin) {
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("userId", userId, "upiPin", upiPin), getHeaders());
@@ -120,6 +165,13 @@ public class UPIService {
     public void tempSaveaccountData(String email, String bankName, String accountNumber) {
         try {
             tempSave = new temSave(email, bankName, accountNumber);
+            //Save it in user databse of npci
+            //Making an Http request
+            HttpEntity<Map<String,String>> entity = new HttpEntity<>(Map.of("email", email, "bankName", bankName, "accountNumber",accountNumber), getHeaders());
+            ResponseEntity<Boolean> response = restTemplate.exchange(BASE_URL + "/saveAccoutInfo", HttpMethod.POST, entity, Boolean.class);
+//            return response.getBody();
+
+
         } catch (Exception e) {
             System.out.println("\n\n========ERROR==\n" + e + "\n==========\n\n");
         }
@@ -160,6 +212,15 @@ public class UPIService {
         Map<String, String> requestBody = Map.of("email", email, "phone", phone, "bankName", bankName);
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, getHeaders());
         ResponseEntity<String> response = restTemplate.exchange(BASE_URL + "/getUpiId", HttpMethod.POST, entity, String.class);
+
+        //Get the uer and update UPI id field
+        String upiId = response.getBody();
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            user.setUpiId(upiId);
+            userRepository.save(user); // save updated user
+        }
+
         return response.getBody();
     }
 
@@ -198,7 +259,12 @@ public class UPIService {
 
     public List<User> getFriends(String userId) {
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("userId", userId), getHeaders());
-        ResponseEntity<List> response = restTemplate.exchange(BASE_URL + "/getFriends", HttpMethod.POST, entity, List.class);
+        ResponseEntity<List<User>> response = restTemplate.exchange(
+                BASE_URL + "/getFriends",
+                HttpMethod.POST,
+                entity,
+                new ParameterizedTypeReference<List<User>>() {}
+        );
         return response.getBody();
     }
 
@@ -236,8 +302,9 @@ public class UPIService {
 
     public String generateQrCode(String upiId) {
         try {
+            String upiUrl = "upi://pay?pa=" + upiId + "&pn=Recipient&am=0.00&cu=INR";
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
-            BitMatrix bitMatrix = qrCodeWriter.encode(upiId, BarcodeFormat.QR_CODE, 200, 200);
+            BitMatrix bitMatrix = qrCodeWriter.encode(upiUrl, BarcodeFormat.QR_CODE, 200, 200);
             ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
             MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
             return Base64.getEncoder().encodeToString(pngOutputStream.toByteArray());

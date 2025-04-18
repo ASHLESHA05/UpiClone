@@ -52,12 +52,19 @@ public class BankController {
     }
 
     @PostMapping("/ipc/debit")
-    public ResponseEntity<String> debit(@RequestParam String accountId, @RequestParam double amount) {
+    public ResponseEntity<String> debit(@RequestBody Map<String,String> request) {
+        String bankName = request.get("bankName");
+        String accountNumber = request.get("accountNumber");
+        double amount = Double.parseDouble(request.get("amount"));
+        String accountId = request.get("accountNumber");
         if (amount <= 0) {
             System.out.println("Attempted debit with non-positive amount: " + amount + " for account: " + accountId);
             return ResponseEntity.badRequest().body("Debit amount must be positive.");
         }
-        Optional<Account> accountOptional = accountRepository.findById(accountId);
+
+
+        //Find the account using the email , hence get the user id (#id use it to get account id)
+        Optional<Account> accountOptional = accountRepository.findByBankNameAndAccountNumber(bankName,accountNumber);
         if (!accountOptional.isPresent()) {
             System.out.println("Account not found for ID (Debit): " + accountId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found");
@@ -82,12 +89,16 @@ public class BankController {
     }
 
     @PostMapping("/ipc/credit")
-    public ResponseEntity<String> credit(@RequestParam String accountId, @RequestParam double amount) {
+    public ResponseEntity<String> credit(@RequestBody Map<String,String> request) {
+        String bankName = request.get("bankName");
+        String accountNumber = request.get("accountNumber");
+        String accountId = request.get("accountNumber");
+        double amount = Double.parseDouble(request.get("amount"));
         if (amount <= 0) {
             System.out.println("Attempted credit with non-positive amount: " + amount + " for account: " + accountId);
             return ResponseEntity.badRequest().body("Credit amount must be positive.");
         }
-        Optional<Account> accountOptional = accountRepository.findById(accountId);
+        Optional<Account> accountOptional = accountRepository.findByBankNameAndAccountNumber(bankName,accountNumber);
         if (!accountOptional.isPresent()) {
             System.out.println("Account not found for ID (Credit): " + accountId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found");
@@ -134,4 +145,5 @@ public class BankController {
         System.out.println("Cards" + cards);
         return ResponseEntity.ok(cards);
     }
+
 }

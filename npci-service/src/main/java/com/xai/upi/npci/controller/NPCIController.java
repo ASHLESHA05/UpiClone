@@ -112,46 +112,69 @@ public class NPCIController {
 
         User user = userOptional.get();
         user.setUpiPin(passwordEncoder.encode(upiPin));
+        //Here use the email to get the account number and add it
+
+
+
         userRepository.save(user);
 
         return ResponseEntity.ok("UPI PIN set successfully");
     }
 
-    @PostMapping("/ipc/transaction")
-    public ResponseEntity<String> makeTransaction(@RequestBody Map<String, String> request) {
-        String fromUserId = request.get("fromUserId");
-        String toUpiId = request.get("toUpiId");
+    @PostMapping(value = "/ipc/transaction", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> makeTransaction(@RequestBody Map<String, String> request) {
+        String fromUserId = request.get("senderUpiId");
+        String toUpiId = request.get("receiverPhone");
         String amountStr = request.get("amount");
         String upiPin = request.get("upiPin");
+        System.out.println(fromUserId);
+        System.out.println(toUpiId);
+        System.out.println(request);
 
-        Optional<User> fromUserOptional = userRepository.findByUserId(fromUserId);
-        Optional<User> toUserOptional = userRepository.findByUpiId(toUpiId);
+        Optional<User> fromUserOptional = userRepository.findByUpiIdOrPhone(fromUserId, fromUserId);
+        Optional<User> toUserOptional = userRepository.findByUpiIdOrPhone(toUpiId, toUpiId);
+        System.out.println(toUserOptional.isPresent());
+        System.out.println(fromUserOptional.isPresent());
 
         if (!fromUserOptional.isPresent() || !toUserOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
         }
 
         User fromUser = fromUserOptional.get();
         if (!passwordEncoder.matches(upiPin, fromUser.getUpiPin())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid UPI PIN");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid UPI PIN"));
         }
 
         double amount;
         try {
             amount = Double.parseDouble(amountStr);
         } catch (NumberFormatException e) {
-            return ResponseEntity.badRequest().body("Invalid amount");
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid amount"));
         }
 
-        HttpEntity<Map<String, String>> debitEntity = new HttpEntity<>(Map.of("accountId", fromUserId, "amount", amountStr), getHeaders());
+        User fuser = fromUserOptional.get();
+        User tuser = toUserOptional.get();
+        String bnkName = fuser.getBankName();
+        String bankid = fuser.getBankAccountId();
+
+        HttpEntity<Map<String, String>> debitEntity = new HttpEntity<>(Map.of("bankName", bnkName, "accountNumber", bankid, "amount", amountStr), getHeaders());
         ResponseEntity<String> debitResponse = restTemplate.exchange(BANK_BASE_URL + "/ipc/debit", HttpMethod.POST, debitEntity, String.class);
 
         if (debitResponse.getStatusCode() != HttpStatus.OK) {
-            return debitResponse;
+            return ResponseEntity.status(debitResponse.getStatusCode()).body(Map.of("message", debitResponse.getBody()));
         }
 
-        HttpEntity<Map<String, String>> creditEntity = new HttpEntity<>(Map.of("accountId", toUserOptional.get().getId(), "amount", amountStr), getHeaders());
+        String tbnkName = tuser.getBankName();
+        String tbankid = tuser.getBankAccountId();
+
+        HttpEntity<Map<String, String>> creditEntity = new HttpEntity<>(Map.of("bankName", tbnkName, "accountNumber", tbankid, "amount", amountStr), getHeaders());
         ResponseEntity<String> creditResponse = restTemplate.exchange(BANK_BASE_URL + "/ipc/credit", HttpMethod.POST, creditEntity, String.class);
+
+        if (creditResponse.getStatusCode() != HttpStatus.OK) {
+            HttpEntity<Map<String, String>> rollbackEntity = new HttpEntity<>(Map.of("bankName", bnkName, "accountNumber", bankid, "amount", amountStr), getHeaders());
+            restTemplate.exchange(BANK_BASE_URL + "/ipc/credit", HttpMethod.POST, rollbackEntity, String.class);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Transaction failed: Credit error"));
+        }
 
         if (creditResponse.getStatusCode() == HttpStatus.OK) {
             LocalDateTime time = LocalDateTime.now();
@@ -164,10 +187,10 @@ public class NPCIController {
             transaction.setTimestamp(date);
             transaction.setStatus("SUCCESS");
             transactionRepository.save(transaction);
-            return ResponseEntity.ok("Transaction successful");
+            return ResponseEntity.ok(Map.of("message", "Transaction successful"));
         }
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Transaction failed");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Transaction failed"));
     }
 
     @GetMapping("/ipc/transactions")
@@ -299,8 +322,29 @@ public class NPCIController {
         User user = userOptional.get();
         user.setUpiPin(passwordEncoder.encode(upiPin));
         userRepository.save(user);
+
+
         return ResponseEntity.ok(true);
     }
+    @PostMapping("/saveAccoutInfo")
+    public ResponseEntity<Boolean> saveAccountInfo(@RequestBody Map<String, String> request){
+        String email = request.get("email");
+        String accountNumber = request.get("accountNumber");
+        String bankName = request.get("bankName");
+
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (!userOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        User user = userOptional.get();
+        user.setBankName(bankName);
+        user.setBankAccountId(accountNumber);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(true);
+    }
+
 
     @PostMapping("/generateUpiId")
     public ResponseEntity<String> generateAndSaveUpiId(@RequestBody Map<String, String> request) {

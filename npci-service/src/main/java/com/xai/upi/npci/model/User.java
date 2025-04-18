@@ -17,6 +17,7 @@ public class User {
     private String upiId;
     private String upiPin;
     private String bankAccountId;
+    private String bankName;
     private String otp;
     private LocalDateTime otpGeneratedAt;
     private String password;
@@ -24,6 +25,8 @@ public class User {
     private List<String> familyMembers;
     private String userId;
 
+    public String getBankName(){return bankName;}
+    public void setBankName(String bankName){this.bankName = bankName;}
     public String getUserId(){ return userId; }
     public void setUserId(String userId){ this.userId = userId; }
     public String getId() { return id; }

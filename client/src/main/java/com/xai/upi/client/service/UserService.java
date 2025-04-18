@@ -43,6 +43,14 @@ public class UserService implements UserStatusService {
         }
     }
 
+    public String getupiId(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            return user.getUpiId();
+        }
+        return null;
+    }
+
     public String signup(SignUpRequest signupRequest) {
         // Map SignUpRequest to NPCI's expected fields
         String usrId = UUID.randomUUID().toString();
