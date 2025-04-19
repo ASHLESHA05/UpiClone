@@ -13,6 +13,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import com.xai.upi.client.service.NotificationService;
 import com.xai.upi.client.model.TransactionDTO;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity; // For ResponseEntity class
+import org.springframework.http.HttpStatus; // For HttpStatus constants (e.g., HttpStatus.OK)
+import org.springframework.web.bind.annotation.*; // For @RestController, @RequestMapping, @GetMapping, @PostMapping, etc.
+import org.springframework.beans.factory.annotation.Autowired; // For @Autowired annotation
+import java.util.List; // For List collections
+import java.util.Map; // For Map collections
 
 import java.util.List;
 import java.util.Map;
@@ -29,9 +37,39 @@ public class ClientController {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+
+    @PostMapping("/settings/unlink")
+    public String unlinkAccount(
+            @RequestParam String upiPin,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            Model model
+    ) {
+        String userId = userDetails.getUserId();
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Validate UPI PIN
+//        if (!passwordEncoder.matches(upiPin, user.getUpiPin())) {
+//            model.addAttribute("error", "Invalid UPI PIN");
+//            return "settings";
+//        }
+
+        // Unlink bank account
+        user.setBankName(null);
+//        user.setBankAccountId(null);
+        user.setUpiId(null);
+        userRepository.save(user);
+
+        model.addAttribute("message", "Bank account unlinked successfully");
+        return "settings";
+    }
+
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         String userId = userDetails.getUserId();
+        System.out.println("UserId = " + userId);
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         String accountNumber = "N/A";
         Double balance = 0.0;
@@ -50,7 +88,6 @@ public class ClientController {
         List<Notification> notifications = notificationService.getPendingNotifications(userId);
         List<TransactionDTO> transactions = upiService.getTransactions(upiId);
 
-
         model.addAttribute("user", user);
         model.addAttribute("balance", balance);
         model.addAttribute("upiId", upiId);
@@ -61,6 +98,8 @@ public class ClientController {
         model.addAttribute("friends", friends);
         model.addAttribute("qrCode", upiService.generateQrCode(upiId));
         model.addAttribute("notifications", notifications);
+
+        model.addAttribute("pendingRequests", notificationService.getPendingRequestsByUser(user.getId()));
 
         return "dashboard";
     }
@@ -81,10 +120,59 @@ public class ClientController {
         return "redirect:/profile";
     }
 
+    @GetMapping("/transactions")
+    public String transactions(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+        String userId = userDetails.getUserId();
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        String upiId = upiService.getUpiId(user.getBankName(), user.getEmail(), user.getPhone());
+        List<TransactionDTO> transactions = upiService.getTransactions(upiId);
+//        System.out.println("transactions = " + transactions);
+
+        model.addAttribute("transactions", transactions);
+        return "transactions";
+    }
+
     @GetMapping("/settings")
-    public String settings() {
+    public String settings(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+        String userId = userDetails.getUserId();
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        String accountNumber = "N/A";
+        String upiId = upiService.getUpiId(user.getBankName(), user.getEmail(), user.getPhone());
+
+        if (user.getPhone() != null && user.getBankName() != null) {
+            List<Account> accounts = upiService.getAccountdetails(user.getPhone(), user.getBankName());
+            if (accounts != null && !accounts.isEmpty()) {
+                accountNumber = accounts.get(0).getAccountNumber();
+            }
+        }
+
+        model.addAttribute("bank", user.getBankName());
+        model.addAttribute("accountNumber", accountNumber);
+        model.addAttribute("upiId", upiId);
         return "settings";
     }
+//    @PostMapping("/settings/changePin")
+//    public ResponseEntity<String> changePin(
+//            @RequestBody Map<String, String> request,
+//            @AuthenticationPrincipal CustomUserDetails userDetails
+//    ) {
+//        String currentPin = request.get("currentPin");
+//        String newPin = request.get("newPin");
+//        String userId = userDetails.getUserId();
+//
+//        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+//
+//        // Validate current PIN
+////        if (!passwordEncoder.matches(currentPin, user.getUpiPin())) {
+////            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid current PIN");
+////        }
+//
+//        // Update PIN
+////        user.setUpiPin(passwordEncoder.encode(newPin));
+//        userRepository.save(user);
+//
+//        return ResponseEntity.ok("PIN changed successfully");
+//    }
 
     @PostMapping("/settings/changePin")
     @ResponseBody

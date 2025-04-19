@@ -38,10 +38,14 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/{bank}/**"),
                                 new AntPathRequestMatcher("/css/**"),
                                 new AntPathRequestMatcher("/js/**"),
-                                new AntPathRequestMatcher("/images/**")
+                                new AntPathRequestMatcher("/images/**"),
+                                new AntPathRequestMatcher("/transaction/requestSplit")
                         ).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/ipc/**")).permitAll()
                         .anyRequest().authenticated()
+                )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/transaction/requestSplit", "POST"))
                 )
                 .formLogin(form -> form
                         .loginPage("/auth/login")

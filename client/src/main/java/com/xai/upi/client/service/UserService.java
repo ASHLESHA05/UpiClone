@@ -118,9 +118,12 @@ public class UserService implements UserStatusService {
     }
     public Map<String, Object> getUserData(String userId) {
         HttpEntity<String> entity = new HttpEntity<>(getHeaders());
+        System.out.println("Calling NPCI for getUserData"+userId);
         ResponseEntity<Map> response = restTemplate.exchange(BASE_URL + "/user?userId=" + userId, HttpMethod.GET, entity, Map.class);
+        System.out.println("=================\nFetched User Data\n===============\n");
         return response.getBody();
     }
+
 
     public String getPhoneByEmail(String email) {
         System.out.println("getPhoneByEmail");
@@ -130,6 +133,14 @@ public class UserService implements UserStatusService {
             return usr.getPhone();
         }
         return null;  // Return null if user is not found
+    }
+    public User findUserByEmail(String email){
+        System.out.println("findUserByEmail");
+        User user = userRepository.findByEmail(email);
+        if(user != null) {
+            return user;
+        }
+        return null;
     }
 
 }

@@ -19,6 +19,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import java.util.Collections;
 
 
+
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
@@ -95,19 +96,38 @@ public class UPIService {
 
     public List<TransactionDTO> getTransactions(String upiId) {
         HttpEntity<String> entity = new HttpEntity<>(getHeaders());
-
+        System.out.println("Inside getTransactions"+upiId);
         ResponseEntity<List<com.xai.upi.client.model.Transaction>> response = restTemplate.exchange(
                 BASE_URL + "/ipc/transactions?upiId=" + upiId,
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<List<com.xai.upi.client.model.Transaction>>() {}
         );
+//        System.out.println("Transaction: RES: = "+response.getBody());
+        return response.getBody().stream().map(tx -> {
+//            System.out.println("Transaction: RES ||tx = "+tx.getFromUserId()+" || "+tx.getToUpiId());
 
-        return response.getBody().stream()
-                .map(tx -> new TransactionDTO(tx, upiId))
-                .collect(Collectors.toList());
+            User sender = userRepository.findByUpiId(tx.getFromUserId());
+            User receiver = userRepository.findByUpiId(tx.getToUpiId());
+
+            String senderName = null;
+            String receiverName = null;
+
+
+
+            if (sender != null) senderName = sender.getUsername();
+            if (receiver != null) {
+//                System.out.println("Reciever Name : " + receiver.getName());
+
+                receiverName = receiver.getUsername();
+            }
+
+//            System.out.println("Sender: " + senderName);
+//            System.out.println("Receiver: " + receiverName);
+
+            return new TransactionDTO(tx, upiId, senderName, receiverName);
+        }).collect(Collectors.toList());
     }
-
 
 
 

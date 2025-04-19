@@ -8,9 +8,16 @@ public class TransactionRequest {
     private String receiverPhone;
     private double amount;
     private String upiPin;
+    private String transactionId;
 
     public TransactionRequest() {};
 
+    public String getTransactionId() {
+        return transactionId;
+    }
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
     public void setAmount(double amount) {
         this.amount = amount;
     }

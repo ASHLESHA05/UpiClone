@@ -4,16 +4,19 @@
     <title>Settings - MyPay</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-color: #2a5298;
             --secondary-color: #1e3c72;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
             --light-bg: #f8f9fa;
             --dark-text: #212529;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Poppins', sans-serif;
             background-color: var(--light-bg);
             color: var(--dark-text);
         }
@@ -33,94 +36,187 @@
             padding: 1rem;
             border-radius: 10px 10px 0 0;
             margin: -2rem -2rem 2rem -2rem;
-            text-align: center;
         }
 
-        .btn-action {
-            background: var(--primary-color);
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section h5 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .alert {
+            border-radius: 10px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .modal-content {
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
             border: none;
         }
 
-        .btn-action:hover {
-            background: var(--secondary-color);
+        .modal-header {
+            border-bottom: none;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px 15px 0 0;
         }
     </style>
 </head>
 <body>
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard">
+            <img src="/images/mypay-logo.png" alt="MyPay" style="height: 30px;">
+        </a>
+        <div class="d-flex align-items-center">
+            <a href="/dashboard" class="btn btn-outline-primary">Back to Dashboard</a>
+        </div>
+    </div>
+</nav>
+
 <div class="settings-container">
     <div class="settings-header">
-        <h5>Settings</h5>
+        <h4 class="mb-0"><i class="fas fa-cog me-2"></i>Settings</h4>
     </div>
-    <div class="list-group">
-        <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#changePinModal">
-            <i class="fas fa-lock me-2"></i> Change UPI PIN
-        </a>
-        <a href="/auth/logout" class="list-group-item list-group-item-action text-danger">
-            <i class="fas fa-sign-out-alt me-2"></i> Logout
-        </a>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    <a href="/dashboard" class="btn btn-outline-secondary w-100 mt-3">Back to Dashboard</a>
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="form-section">
+        <h5>Change UPI PIN</h5>
+        <form id="changePinForm">
+            <div class="mb-3">
+                <label class="form-label">Current UPI PIN</label>
+                <input type="password" class="form-control" id="currentPin" pattern="\d{6}" maxlength="6" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">New UPI PIN</label>
+                <input type="password" class="form-control" id="newPin" pattern="\d{6}" maxlength="6" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Confirm New UPI PIN</label>
+                <input type="password" class="form-control" id="confirmPin" pattern="\d{6}" maxlength="6" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-save me-1"></i> Update PIN
+            </button>
+        </form>
+    </div>
+
+    <div class="form-section">
+        <h5>Account Settings</h5>
+        <div class="mb-3">
+            <label class="form-label">Linked Bank Account</label>
+            <p class="form-control-plaintext" th:text="${bank} + ' ••••' + ${#strings.substring(accountNumber, #strings.length(accountNumber)-4)}"></p>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">UPI ID</label>
+            <p class="form-control-plaintext" th:text="${upiId}"></p>
+        </div>
+        <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#unlinkAccountModal">
+            <i class="fas fa-unlink me-1"></i> Unlink Bank Account
+        </button>
+    </div>
 </div>
-<!-- Change PIN Modal (reused from dashboard) -->
-<div class="modal fade" id="changePinModal" tabindex="-1">
+
+<div class="modal fade" id="unlinkAccountModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Change UPI PIN</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title">Unlink Bank Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="changePinForm">
+                <p>Are you sure you want to unlink your bank account? This will disable UPI transactions until a new account is linked.</p>
+                <form id="unlinkAccountForm" th:action="@{/settings/unlink}" method="post">
                     <div class="mb-3">
-                        <label class="form-label">Current UPI PIN</label>
-                        <input type="password" class="form-control" pattern="\d{6}" maxlength="6" required>
+                        <label class="form-label">UPI PIN</label>
+                        <input type="password" class="form-control" name="upiPin" pattern="\d{6}" maxlength="6" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">New UPI PIN</label>
-                        <input type="password" class="form-control" pattern="\d{6}" maxlength="6" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Confirm New UPI PIN</label>
-                        <input type="password" class="form-control" pattern="\d{6}" maxlength="6" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-save me-1"></i> Update PIN
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="fas fa-unlink me-1"></i> Confirm Unlink
                     </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.getElementById('changePinForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const newPin = this.querySelector('input[type="password"]:nth-of-type(2)').value;
-        const confirmPin = this.querySelector('input[type="password"]:nth-of-type(3)').value;
 
+        const currentPin = document.getElementById('currentPin').value;
+        const newPin = document.getElementById('newPin').value;
+        const confirmPin = document.getElementById('confirmPin').value;
+
+        // Client-side validation
         if (newPin !== confirmPin) {
-            alert('PINs do not match!');
+            showAlert('danger', 'New PIN and Confirm PIN do not match!');
             return;
         }
 
         if (newPin.length !== 6 || !/^\d+$/.test(newPin)) {
-            alert('Please enter a valid 6-digit PIN');
+            showAlert('danger', 'Please enter a valid 6-digit PIN');
             return;
         }
 
+        // Send request to server
         fetch('/settings/changePin', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ currentPin: this.querySelector('input[type="password"]:nth-of-type(1)').value, newPin: newPin })
-        }).then(response => {
-            if (response.ok) {
-                alert('PIN changed successfully!');
-                bootstrap.Modal.getInstance(document.getElementById('changePinModal')).hide();
-            } else {
-                alert('Failed to change PIN.');
-            }
-        });
+            body: JSON.stringify({ currentPin: currentPin, newPin: newPin })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+                return response.text();
+            })
+            .then(() => {
+                showAlert('success', 'PIN changed successfully!');
+                document.getElementById('changePinForm').reset();
+            })
+            .catch(error => {
+                showAlert('danger', 'Failed to change PIN: ' + (error.message || 'Unknown error'));
+            });
     });
+
+    function showAlert(type, message) {
+        const alertContainer = document.createElement('div');
+        alertContainer.className = `alert alert-${type} alert-dismissible fade show`;
+        alertContainer.role = 'alert';
+        alertContainer.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.settings-container').prepend(alertContainer);
+        setTimeout(() => {
+            alertContainer.classList.remove('show');
+            setTimeout(() => alertContainer.remove(), 150);
+        }, 5000);
+    }
 </script>
 </body>
 </html>

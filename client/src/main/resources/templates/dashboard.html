@@ -1,74 +1,107 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta name="_csrf" content="${_csrf.token}">
+    <meta name="_csrf_header" content="${_csrf.headerName}">
+
     <title>MyPay UPI Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.3.1/jsQR.min.js"></script>
     <style>
         :root {
-            --primary-color: #2a5298;
-            --secondary-color: #1e3c72;
-            --accent-color: #6b48ff;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --light-bg: #f8f9fa;
-            --dark-text: #212529;
-            --family-mode-color: #ff6b6b;
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #7c3aed;
+            --success-color: #22c55e;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --light-bg: #f9fafb;
+            --dark-text: #1f2937;
+            --family-mode-color: #16a34a; /* Green for family mode */
+            --card-bg: #ffffff;
+            --gradient-bg: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--light-bg);
             color: var(--dark-text);
             transition: all 0.3s ease;
+            line-height: 1.6;
         }
 
         body.family-mode {
-            --primary-color: #ff6b6b;
-            --secondary-color: #ff4757;
-            background-color: #fff0f0;
+            --primary-color: #16a34a; /* Green primary */
+            --secondary-color: #15803d; /* Darker green */
+            --family-mode-color: #16a34a; /* Consistent green */
+            background-color: #f0fdf4; /* Light green background */
         }
 
-        .navbar-brand img {
-            height: 30px;
+        .navbar {
+            background: var(--card-bg);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand i {
+            font-size: 1.75rem;
+            margin-right: 0.5rem;
+            background: var(--gradient-bg);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
         }
 
         .mode-toggle {
-            position: relative;
-            width: 60px;
-            height: 30px;
-            border-radius: 15px;
+            width: 56px;
+            height: 28px;
+            border-radius: 14px;
             background-color: var(--primary-color);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
         .mode-toggle .toggle-handle {
             position: absolute;
             top: 2px;
             left: 2px;
-            width: 26px;
-            height: 26px;
-            background-color: white;
+            width: 24px;
+            height: 24px;
+            background-color: #fff;
             border-radius: 50%;
-            transition: all 0.3s;
+            transition: left 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         .mode-toggle.active .toggle-handle {
-            left: 32px;
+            left: 30px !important;
         }
 
         .dashboard-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: var(--gradient-bg);
             color: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
             position: relative;
             overflow: hidden;
         }
@@ -76,58 +109,70 @@
         .dashboard-header::before {
             content: "";
             position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            top: -60%;
+            right: -60%;
+            width: 120%;
+            height: 220%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0.5;
         }
 
         .qr-code-container {
-            position: absolute;
             top: 1.5rem;
             right: 1.5rem;
-            background: white;
-            padding: 0.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: var(--card-bg);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            z-index: 10;
         }
 
-        .qr-code-container:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        .qr-code-container i {
+            font-size: 1.75rem;
+            color: var(--primary-color);
         }
 
         .qr-code-container img {
-            width: 50px;
-            height: 50px;
+            display: none;
+        }
+
+        .qr-code-container:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .balance-display {
-            font-size: 2.5rem;
+            font-size: 2.75rem;
             font-weight: 700;
-            margin: 1rem 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 1.25rem 0;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            letter-spacing: -0.5px;
         }
 
         .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
         .action-btn {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
-            padding: 1.2rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             text-decoration: none;
             color: var(--dark-text);
@@ -140,7 +185,8 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            background: rgba(42, 82, 152, 0.1);
+            background: var(--gradient-bg);
+            opacity: 0.1;
             top: 100%;
             left: 0;
             transition: all 0.3s ease;
@@ -151,75 +197,89 @@
         }
 
         .action-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            transform: translateY(-6px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
             color: var(--primary-color);
         }
 
         .action-btn i {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
             color: var(--primary-color);
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .action-btn:hover i {
-            transform: scale(1.2);
+            transform: scale(1.15);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .action-btn span {
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
         .offers-section, .friend-circle-section, .family-mode-section {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
         }
 
         .offer-card {
             display: flex;
             align-items: center;
-            padding: 1rem;
-            background: white;
-            border-radius: 12px;
+            padding: 1.25rem;
+            background: linear-gradient(145deg, #ffffff, #f3f4f6);
+            border-radius: 10px;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             transition: all 0.3s ease;
         }
 
         .offer-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
         }
 
-        .offer-card img {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-            object-fit: cover;
+        .offer-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--gradient-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-right: 1rem;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
         .transaction-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.25rem;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
+            cursor: pointer;
         }
 
         .transaction-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
         }
 
         .transaction-icon {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background-color: var(--light-bg);
+            background-color: #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -242,107 +302,195 @@
         .family-member, .friend-card {
             display: flex;
             align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid #eee;
+            padding: 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
             transition: all 0.3s ease;
         }
 
         .family-member:hover, .friend-card:hover {
-            background: #f8f9fa;
+            background: #f1f5f9;
+            border-radius: 8px;
         }
 
         .family-member:last-child, .friend-card:last-child {
             border-bottom: none;
         }
 
-        .family-member-avatar {
-            width: 50px;
-            height: 50px;
+        .family-member-avatar, .friend-avatar {
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background-color: var(--light-bg);
+            background-color: #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 1rem;
             color: var(--family-mode-color);
             font-weight: 600;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
         }
 
         .floating-action-btn {
             position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
+            bottom: 2.5rem;
+            right: 2.5rem;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
-            background: var(--primary-color);
+            background: var(--gradient-bg);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
             cursor: pointer;
             transition: all 0.3s ease;
             animation: pulse 2s infinite;
         }
 
         .floating-action-btn:hover {
-            transform: scale(1.15);
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+            transform: scale(1.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(42, 82, 152, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(42, 82, 152, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(42, 82, 152, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(37, 99, 235, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
         }
 
         .modal-content {
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
             border: none;
         }
 
         .modal-header {
             border-bottom: none;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: var(--gradient-bg);
             color: white;
-            border-radius: 15px 15px 0 0;
+            border-radius: 12px 12px 0 0;
+            padding: 1.5rem;
         }
 
         .modal-footer {
             border-top: none;
+            padding: 1.5rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-qr-placeholder {
+            width: 240px;
+            height: 240px;
+            background: #fff;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .modal-qr-placeholder:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-qr-placeholder i {
+            font-size: 4rem;
+            color: var(--primary-color);
+        }
+
+        .notification-badge {
+            top: -4px;
+            right: -4px;
+            background: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: var(--gradient-bg);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         @media (max-width: 768px) {
             .quick-actions {
-                grid-template-columns: repeat(2, 1fr);
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            .action-btn {
+                flex: 1 1 45%;
             }
             .balance-display {
-                font-size: 2rem;
+                font-size: 2.25rem;
+            }
+            .dashboard-header {
+                padding: 1.5rem;
+            }
+            .floating-action-btn {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                width: 56px;
+                height: 56px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .action-btn {
+                flex: 1 1 100%;
+            }
+            .quick-actions {
+                flex-direction: column;
+            }
+            .modal-qr-placeholder {
+                width: 200px;
+                height: 200px;
             }
         }
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+<nav class="navbar navbar-expand-lg">
     <div class="container">
         <a class="navbar-brand" href="#">
-            <img src="/images/mypay-logo.png" alt="MyPay">
+            <i class="fas fa-wallet"></i> MyPay
         </a>
+        <a href="/transaction/pendingRequests" class="position-relative me-3">
+            <i class="fas fa-hourglass-half fa-lg"></i>
+            <span th:if="${#lists.size(pendingRequests) > 0}" class="notification-badge" th:text="${#lists.size(pendingRequests)}"></span>
+        </a>
+
         <div class="d-flex align-items-center">
-            <div class="me-3">
-                <span class="me-2">Family Mode</span>
+            <a href="/transaction/notifications" class="position-relative me-3">
+                <i class="fas fa-bell fa-lg"></i>
+                <span th:if="${#lists.size(notifications) > 0}" class="notification-badge" th:text="${#lists.size(notifications)}"></span>
+            </a>
+            <div class="me-3 d-flex align-items-center">
+                <span class="me-2 text-muted">Family Mode</span>
                 <div class="mode-toggle" id="modeToggle">
                     <div class="toggle-handle"></div>
                 </div>
             </div>
             <div class="dropdown">
                 <a href="#" class="dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
-                    <i class="fas fa-user-circle fa-2x"></i>
+                    <i class="fas fa-user-circle fa-lg"></i>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end">
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                     <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>Profile</a></li>
                     <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
                     <li><hr class="dropdown-divider"></li>
@@ -353,17 +501,18 @@
     </div>
 </nav>
 
-<div class="container my-4">
+<div class="container my-5">
     <div class="dashboard-header animate__animated animate__fadeIn">
         <div class="qr-code-container" data-bs-toggle="modal" data-bs-target="#qrModal">
+            <i class="fas fa-qrcode"></i>
             <img th:src="@{'data:image/png;base64,' + ${qrCode}}" alt="UPI QR Code">
         </div>
-        <h5>Your Balance</h5>
+        <h5 class="fw-medium">Your Balance</h5>
         <div class="balance-display">₹<span id="balanceValue" th:text="${#numbers.formatDecimal(balance, 0, 'COMMA', 2, 'POINT')}"></span></div>
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <small class="text-light">UPI ID</small>
-                <p class="mb-0"><strong th:text="${upiId}"></strong></p>
+                <small class="text-light opacity-75">UPI ID</small>
+                <p class="mb-0 fw-medium" th:text="${upiId}"></p>
             </div>
             <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#balanceModal">
                 <i class="fas fa-eye me-1"></i> View Details
@@ -391,109 +540,92 @@
     </div>
 
     <div class="offers-section normal-mode-section animate__animated animate__fadeInUp">
-        <h5 class="mb-3"><i class="fas fa-tag me-2 text-warning"></i> UPI Offers For You</h5>
+        <h5 class="mb-4 fw-semibold"><i class="fas fa-tag me-2 text-warning"></i> UPI Offers For You</h5>
         <div class="offer-card">
-            <img src="https://via.placeholder.com/60" alt="Offer 1">
+            <div class="offer-icon"><i class="fas fa-gift"></i></div>
             <div class="flex-grow-1">
-                <h6 class="mb-1">Get 10% Cashback</h6>
+                <h6 class="mb-1 fw-medium">Get 10% Cashback</h6>
                 <p class="mb-0 text-muted small">On all mobile recharges above ₹200</p>
             </div>
             <button class="btn btn-sm btn-primary">Claim Now</button>
         </div>
         <div class="offer-card">
-            <img src="https://via.placeholder.com/60" alt="Offer 2">
+            <div class="offer-icon"><i class="fas fa-percentage"></i></div>
             <div class="flex-grow-1">
-                <h6 class="mb-1">Free Delivery</h6>
+                <h6 class="mb-1 fw-medium">Free Delivery</h6>
                 <p class="mb-0 text-muted small">Use UPI on FoodApp and get free delivery</p>
             </div>
             <button class="btn btn-sm btn-primary">Claim Now</button>
         </div>
-
-
-        <h5 class="mb-3"><i class="fas fa-bell me-2 text-warning"></i> Notifications</h5>
-        <div th:each="notification : ${notifications}">
-            <div class="offer-card">
-                <div class="flex-grow-1">
-                    <h6 class="mb-1">Money Request</h6>
-                    <p class="mb-0 text-muted small">
-                        From: <span th:text="${notification.requesterUpiId}"></span> for ₹<span th:text="${notification.amount}"></span>
-                    </p>
-                </div>
-                <a th:href="@{/transaction/payRequest(id=${notification.id})}" class="btn btn-sm btn-primary">Pay Now</a>
-            </div>
-        </div>
-        <div th:if="${#lists.isEmpty(notifications)}" class="text-center py-4 text-muted">
-            <i class="fas fa-bell fa-2x mb-3"></i>
-            <p>No pending requests</p>
-        </div>
-
     </div>
 
     <div class="friend-circle-section normal-mode-section animate__animated animate__fadeInUp">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5><i class="fas fa-user-friends me-2 text-primary"></i> Friend Circle</h5>
-            <div>
-                <input type="text" id="friendSearch" class="form-control d-inline-block w-auto" placeholder="Phone or UPI ID">
-                <button class="btn btn-sm btn-primary ms-2" onclick="addFriend()">Add Friend</button>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-semibold"><i class="fas fa-user-friends me-2 text-primary"></i> Friend Circle</h5>
+            <div class="d-flex align-items-center">
+                <input type="text" id="friendSearch" class="form-control d-inline-block me-2" style="width: 200px;" placeholder="Phone or UPI ID">
+                <button class="btn btn-sm btn-primary" onclick="addFriend()">Add Friend</button>
             </div>
         </div>
         <div th:each="friend : ${friends}" class="friend-card">
-            <div class="family-member-avatar" th:text="${friend.name.substring(0,2).toUpperCase()}"></div>
+            <div class="friend-avatar" th:text="${friend.name != null ? friend.name.substring(0,2).toUpperCase() : 'NA'}"></div>
             <div class="flex-grow-1">
-                <h6 class="mb-1" th:text="${friend.name}"></h6>
+                <h6 class="mb-1 fw-medium" th:text="${friend.name != null ? friend.name : 'Unknown'}"></h6>
                 <p class="mb-0 text-muted small" th:text="${friend.upiId}"></p>
             </div>
-            <div>
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="sendMoneyToFriend('${friend.upiId}')"><i class="fas fa-paper-plane"></i></button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary" onclick="sendMoneyToFriend('${friend.upiId}')"><i class="fas fa-paper-plane"></i></button>
                 <button class="btn btn-sm btn-outline-secondary" onclick="requestMoneyFromFriend('${friend.upiId}')"><i class="fas fa-hand-holding-usd"></i></button>
+                <button class="btn btn-sm btn-outline-info" onclick="openChat('${friend.upiId}')"><i class="fas fa-comment"></i></button>
             </div>
         </div>
-        <div th:if="${#lists.isEmpty(friends)}" class="text-center py-4 text-muted">
-            <i class="fas fa-user-friends fa-2x mb-3"></i>
+        <div th:if="${#lists.isEmpty(friends)}" class="text-center py-5 text-muted">
+            <i class="fas fa-user-friends fa-2x mb-3 opacity-50"></i>
             <p>No friends added yet</p>
         </div>
     </div>
 
     <div class="family-mode-section animate__animated animate__fadeInUp">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5><i class="fas fa-users me-2" style="color: var(--family-mode-color);"></i> Family Group</h5>
-            <div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-semibold"><i class="fas fa-users me-2" style="color: var(--family-mode-color);"></i> Family Group</h5>
+            <div class="d-flex gap-2">
                 <button class="btn btn-sm" style="background-color: var(--family-mode-color); color: white;" data-bs-toggle="modal" data-bs-target="#addFamilyModal">
                     <i class="fas fa-plus me-1"></i> Add Member
                 </button>
-                <button class="btn btn-sm btn-outline-secondary ms-2" data-bs-toggle="modal" data-bs-target="#splitBillModal">
+                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#splitBillModal">
                     <i class="fas fa-receipt me-1"></i> Split Bill
                 </button>
             </div>
         </div>
         <div th:each="member : ${familyMembers}" class="family-member">
-            <div class="family-member-avatar" th:text="${member.name.substring(0,2).toUpperCase()}"></div>
+            <div class="family-member-avatar" th:text="${member.name != null ? member.name.substring(0,2).toUpperCase() : 'NA'}"></div>
             <div class="flex-grow-1">
-                <h6 class="mb-1" th:text="${member.name}"></h6>
+                <h6 class="mb-1 fw-medium" th:text="${member.name != null ? member.name : 'Unknown'}"></h6>
                 <p class="mb-0 text-muted small" th:text="${member.upiId}"></p>
             </div>
-            <div>
-                <button class="btn btn-sm btn-outline-secondary me-1" onclick="sendMoneyToFamily('${member.upiId}')"><i class="fas fa-paper-plane"></i></button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" onclick="sendMoneyToFamily('${member.upiId}')"><i class="fas fa-paper-plane"></i></button>
                 <button class="btn btn-sm btn-outline-primary" onclick="requestMoneyFromFamily('${member.upiId}')"><i class="fas fa-hand-holding-usd"></i></button>
+                <button class="btn btn-sm btn-outline-info" onclick="openChat('${member.upiId}')"><i class="fas fa-comment"></i></button>
             </div>
         </div>
-        <div th:if="${#lists.isEmpty(familyMembers)}" class="text-center py-4 text-muted">
-            <i class="fas fa-users fa-2x mb-3"></i>
+        <div th:if="${#lists.isEmpty(familyMembers)}" class="text-center py-5 text-muted">
+            <i class="fas fa-users fa-2x mb-3 opacity-50"></i>
             <p>No family members added yet</p>
         </div>
     </div>
 
     <div class="normal-mode-section animate__animated animate__fadeInUp">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5><i class="fas fa-history me-2"></i> Recent Transactions</h5>
-            <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-semibold"><i class="fas fa-history me-2"></i> Recent Transactions</h5>
+            <a href="/transactions" class="btn btn-sm btn-outline-primary">View All</a>
         </div>
-        <div th:each="txn : ${transactions}" class="transaction-card">
+        <div th:each="txn : ${transactions}" class="transaction-card" onclick="showTransactionDetails('${txn.description}', '${txn.amount}', '${txn.formattedDate}', '${txn.status}', '${txn.type}')">
             <div class="transaction-icon">
                 <i th:class="${txn.type == 'CREDIT' ? 'fas fa-arrow-down text-success' : 'fas fa-arrow-up text-danger'}"></i>
             </div>
             <div class="flex-grow-1">
-                <h6 class="mb-1" th:text="${txn.description} ?: 'UPI Transaction'"></h6>
+                <h6 class="mb-1 fw-medium" th:text="${txn.description} ?: 'UPI Transaction'"></h6>
                 <small class="text-muted" th:text="${txn.formattedDate}"></small>
             </div>
             <div class="text-end">
@@ -506,8 +638,8 @@
                 </small>
             </div>
         </div>
-        <div th:if="${#lists.isEmpty(transactions)}" class="text-center py-4 text-muted">
-            <i class="fas fa-exchange-alt fa-2x mb-3"></i>
+        <div th:if="${#lists.isEmpty(transactions)}" class="text-center py-5 text-muted">
+            <i class="fas fa-exchange-alt fa-2x mb-3 opacity-50"></i>
             <p>No transactions yet</p>
         </div>
     </div>
@@ -525,8 +657,11 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <img th:src="@{'data:image/png;base64,' + ${qrCode}}" alt="UPI QR Code" class="img-fluid mb-3" style="max-width: 250px;">
-                <p class="mb-1"><strong th:text="${upiId}"></strong></p>
+                <div class="modal-qr-placeholder">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <img th:src="@{'data:image/png;base64,' + ${qrCode}}" alt="UPI QR Code" class="d-none">
+                <p class="mb-1 fw-medium" th:text="${upiId}"></p>
                 <p class="text-muted small">Scan this QR code to receive payments</p>
                 <button class="btn btn-primary mt-2">
                     <i class="fas fa-download me-1"></i> Download QR
@@ -614,10 +749,10 @@
                         <label class="form-label">Amount</label>
                         <input type="number" class="form-control" name="amount" required>
                     </div>
-<!--                    <div class="mb-3">-->
-<!--                        <label class="form-label">UPI PIN</label>-->
-<!--                        <input type="password" class="form-control" name="upiPin" pattern="\d{6}" maxlength="6" required>-->
-<!--                    </div>-->
+                    <div class="mb-3">
+                        <label class="form-label">UPI PIN</label>
+                        <input type="password" class="form-control" name="upiPin" pattern="\d{6}" maxlength="6" required>
+                    </div>
                     <button type="submit" class="btn btn-primary w-100">Send</button>
                 </form>
             </div>
@@ -658,10 +793,10 @@
             </div>
             <div class="modal-body">
                 <div id="qrScanner" class="text-center">
-                    <video id="video" width="300" height="200" style="border: 1px solid black"></video>
-                    <div class="mt-3">
+                    <video id="video" width="300" height="200" style="border: 1px solid #e5e7eb; border-radius: 8px;"></video>
+                    <div class="mt-3 d-flex gap-2 justify-content-center">
                         <button id="startButton" class="btn btn-primary">Start Scanning</button>
-                        <button id="stopButton" class="btn btn-secondary">Stop Scanning</button>
+                        <button id="stopButton" class="btn btn-outline-secondary">Stop Scanning</button>
                     </div>
                 </div>
             </div>
@@ -737,7 +872,7 @@
                     <div class="mb-3">
                         <label class="form-label">Select Members</label>
                         <select multiple class="form-control" id="splitMembers" required>
-                            <option th:each="member : ${familyMembers}" th:value="${member.upiId}" th:text="${member.name}"></option>
+                            <option th:each="member : ${familyMembers}" th:value=${member.upiId} th:text="${member.name != null ? member.name : 'Unknown'}"></option>
                         </select>
                     </div>
                     <button type="button" class="btn btn-primary w-100" onclick="calculateSplit()">Calculate & Request</button>
@@ -753,33 +888,52 @@
 <div class="modal fade" id="quickActionModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content animate__animated animate__zoomIn">
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <div class="row g-3">
                     <div class="col-6">
-                        <button class="btn btn-light w-100 h-100 py-3" data-bs-toggle="modal" data-bs-target="#sendMoneyModal">
-                            <i class="fas fa-paper-plane fa-2x mb-2"></i>
+                        <button class="btn btn-light w-100 h-100 py-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#sendMoneyModal">
+                            <i class="fas fa-paper-plane fa-2x mb-2 text-primary"></i>
                             <div>Send Money</div>
                         </button>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-light w-100 h-100 py-3" data-bs-toggle="modal" data-bs-target="#requestMoneyModal">
-                            <i class="fas fa-hand-holding-usd fa-2x mb-2"></i>
+                        <button class="btn btn-light w-100 h-100 py-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#requestMoneyModal">
+                            <i class="fas fa-hand-holding-usd fa-2x mb-2 text-primary"></i>
                             <div>Request Money</div>
                         </button>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-light w-100 h-100 py-3" data-bs-toggle="modal" data-bs-target="#scanQRModal">
-                            <i class="fas fa-qrcode fa-2x mb-2"></i>
+                        <button class="btn btn-light w-100 h-100 py-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#scanQRModal">
+                            <i class="fas fa-qrcode fa-2x mb-2 text-primary"></i>
                             <div>Scan QR</div>
                         </button>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-light w-100 h-100 py-3" data-bs-toggle="modal" data-bs-target="#bankTransferModal">
-                            <i class="fas fa-university fa-2x mb-2"></i>
+                        <button class="btn btn-light w-100 h-100 py-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#bankTransferModal">
+                            <i class="fas fa-university fa-2x mb-2 text-primary"></i>
                             <div>Bank Transfer</div>
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="transactionDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <h5 class="modal-title">Transaction Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Description:</strong> <span id="txnDescription"></span></p>
+                <p><strong>Amount:</strong> ₹<span id="txnAmount"></span></p>
+                <p><strong>Date:</strong> <span id="txnDate"></span></p>
+                <p><strong>Status:</strong> <span id="txnStatus"></span></p>
+                <p><strong>Type:</strong> <span id="txnType"></span></p>
+                <button class="btn btn-primary w-100 mt-3" onclick="openChatFromTransaction()">Chat</button>
             </div>
         </div>
     </div>
@@ -802,19 +956,31 @@
                 balanceElement.textContent = current.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }, 20);
         }
-    });
 
-    const modeToggle = document.getElementById('modeToggle');
-    modeToggle.addEventListener('click', function() {
-        this.classList.toggle('active');
-        document.body.classList.toggle('family-mode');
-        localStorage.setItem('familyMode', document.body.classList.contains('family-mode'));
-    });
+        // Toggle button logic
+        const modeToggle = document.getElementById('modeToggle');
+        const body = document.body;
 
-    if (localStorage.getItem('familyMode') === 'true') {
-        modeToggle.classList.add('active');
-        document.body.classList.add('family-mode');
-    }
+        // Initialize toggle state from localStorage
+        const isFamilyMode = localStorage.getItem('familyMode') === 'true';
+        if (isFamilyMode) {
+            body.classList.add('family-mode');
+            modeToggle.classList.add('active');
+        } else {
+            body.classList.remove('family-mode');
+            modeToggle.classList.remove('active');
+        }
+        console.log('Initial state:', { isFamilyMode, hasActiveClass: modeToggle.classList.contains('active') });
+
+        // Toggle on click
+        modeToggle.addEventListener('click', function() {
+            modeToggle.classList.toggle('active');
+            body.classList.toggle('family-mode');
+            const newState = body.classList.contains('family-mode');
+            localStorage.setItem('familyMode', newState);
+            console.log('Toggled state:', { isFamilyMode: newState, hasActiveClass: modeToggle.classList.contains('active') });
+        });
+    });
 
     function addFriend() {
         const searchValue = document.getElementById('friendSearch').value;
@@ -865,20 +1031,74 @@
     function calculateSplit() {
         const amount = parseFloat(document.getElementById('billAmount').value);
         const members = Array.from(document.getElementById('splitMembers').selectedOptions).map(option => option.value);
-        const numMembers = members.length + 1; // Including self
+        const numMembers = members.length + 1;
         const splitAmount = amount / numMembers;
 
         document.getElementById('splitAmount').textContent = splitAmount.toFixed(2);
         document.getElementById('splitResult').style.display = 'block';
 
+        const csrfTokenMeta = document.querySelector('meta[name="_csrf"]');
+        const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+
+        if (!csrfTokenMeta || !csrfHeaderMeta) {
+            console.error('CSRF meta tags not found!');
+            alert('Error: CSRF token not found. Please refresh the page and try again.');
+            return;
+        }
+
+        const csrfToken = csrfTokenMeta.getAttribute('content');
+        const csrfHeader = csrfHeaderMeta.getAttribute('content');
+
+        if (!csrfToken || !csrfHeader) {
+            console.error('CSRF token or header is missing or invalid:', csrfToken, csrfHeader);
+            alert('Error: Invalid CSRF configuration. Please refresh the page and try again.');
+            return;
+        }
+
         members.forEach(upiId => {
-            fetch('/transaction/request', {
+            fetch('/transaction/requestSplit', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken // Use dynamic header name from meta tag
+                },
                 body: JSON.stringify({ receiverPhone: upiId, amount: splitAmount })
-            });
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Split request successful for', upiId, data);
+                })
+                .catch(error => {
+                    console.error('Error sending split request for', upiId, error);
+                    alert('Failed to send split request for ' + upiId + '. Please try again.');
+                });
         });
     }
+
+    function showTransactionDetails(description, amount, date, status, type) {
+        document.getElementById('txnDescription').textContent = description;
+        document.getElementById('txnAmount').textContent = parseFloat(amount).toFixed(2);
+        document.getElementById('txnDate').textContent = date;
+        document.getElementById('txnStatus').textContent = status;
+        document.getElementById('txnType').textContent = type;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('transactionDetailsModal')).show();
+    }
+
+    function openChat(upiId) {
+        alert('Chat functionality with ' + upiId + ' is not implemented yet.');
+    }
+
+    function openChatFromTransaction() {
+        const description = document.getElementById('txnDescription').textContent;
+        const upiId = description.split(' ').pop();
+        openChat(upiId);
+    }
+
     document.getElementById('changePinForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const newPin = this.querySelector('input[type="password"]:nth-of-type(2)').value;
@@ -907,7 +1127,6 @@
             }
         });
     });
-
 
     const video = document.getElementById('video');
     const startButton = document.getElementById('startButton');
@@ -949,7 +1168,6 @@
             requestAnimationFrame(scanQRCode);
         }
     }
-</script>
 </script>
 </body>
 </html>

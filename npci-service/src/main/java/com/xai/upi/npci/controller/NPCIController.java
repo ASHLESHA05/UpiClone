@@ -131,8 +131,8 @@ public class NPCIController {
         System.out.println(toUpiId);
         System.out.println(request);
 
-        Optional<User> fromUserOptional = userRepository.findByUpiIdOrPhone(fromUserId, fromUserId);
-        Optional<User> toUserOptional = userRepository.findByUpiIdOrPhone(toUpiId, toUpiId);
+        Optional<User> fromUserOptional = userRepository.findByUpiIdOrPhoneOrBankAccountId(fromUserId, fromUserId,fromUserId);
+        Optional<User> toUserOptional = userRepository.findByUpiIdOrPhoneOrBankAccountId(toUpiId, toUpiId,toUpiId);
         System.out.println(toUserOptional.isPresent());
         System.out.println(fromUserOptional.isPresent());
 
@@ -182,7 +182,7 @@ public class NPCIController {
 
             Transaction transaction = new Transaction();
             transaction.setFromUserId(fromUserId);
-            transaction.setToUpiId(toUpiId);
+            transaction.setToUpiId(tuser.getUpiId());
             transaction.setAmount(amount);
             transaction.setTimestamp(date);
             transaction.setStatus("SUCCESS");
@@ -195,8 +195,25 @@ public class NPCIController {
 
     @GetMapping("/ipc/transactions")
     public ResponseEntity<List<Transaction>> getTransactionsInternal(@RequestParam String upiId) {
-        return ResponseEntity.ok(transactionRepository.findByFromUserIdOrToUpiId(upiId, upiId));
+        List<Transaction> transactions = transactionRepository.findByFromUserIdOrToUpiId(upiId, upiId);
+        if (!transactions.isEmpty()) {
+            Transaction t = transactions.get(0);
+            System.out.println("ID: " + t.getId());
+            System.out.println("From User ID: " + t.getFromUserId());
+            System.out.println("To User ID: " + t.getToUserId());
+            System.out.println("Sender UPI ID: " + t.getSenderUpiId());
+            System.out.println("Receiver UPI ID: " + t.getReceiverUpiId());
+            System.out.println("To UPI ID: " + t.getToUpiId());
+            System.out.println("Amount: " + t.getAmount());
+            System.out.println("Status: " + t.getStatus());
+            System.out.println("Timestamp: " + t.getTimestamp());
+        }
+        else{
+            System.out.println("No transactions found\n\n"+transactions+"\n\n");
+        }
+        return ResponseEntity.ok(transactions);
     }
+
 
     @PostMapping("/ipc/checkBalance")
     public ResponseEntity<Map<String, Object>> checkBalance(@RequestBody Map<String, String> request) {
@@ -451,7 +468,10 @@ public class NPCIController {
         List<String> friendIds = user.getFriends() != null ? user.getFriends() : new ArrayList<>();
         List<User> friends = new ArrayList<>();
         for (String friendId : friendIds) {
-            userRepository.findByUserId(friendId).ifPresent(friends::add);
+            Optional<User> user2 = userRepository.findById(friendId);
+            if(user2.isPresent()) {
+                friends.add(user2.get());
+            }
         }
         return ResponseEntity.ok(friends);
     }
@@ -500,8 +520,12 @@ public class NPCIController {
         List<User> members = new ArrayList<>();
         System.out.println("memberIds "+memberIds);
         for (String memberId : memberIds) {
-            userRepository.findByUserId(memberId).ifPresent(members::add);
+            Optional<User> user1 = userRepository.findById(memberId);
+            if(user1.isPresent()){
+                members.add(user1.get());
+            }
         }
+        System.out.println("members "+members);
         return ResponseEntity.ok(members);
     }
 

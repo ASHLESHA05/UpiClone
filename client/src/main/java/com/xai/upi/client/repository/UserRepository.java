@@ -6,4 +6,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     // Custom query methods
     User findByEmail(String email);
     User findByUsername(String username);
+    User findByUpiId(String upiId);
+
 }
