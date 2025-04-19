@@ -136,42 +136,42 @@ public class TransactionController {
     }
 
 
-    @PostMapping("/requestSplit")
-    public String requestMoney(
-            @RequestBody Map<String, Object> payload,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            Model model
-    ) {
-        System.out.println("requestMoney payload= ");
-        String receiverPhone = (String) payload.get("receiverPhone");
-        double amount = Double.parseDouble(payload.get("amount").toString());
-
-        String senderUpiId = userService.getupiId(userDetails.getEmail());
-        User receiver = upiService.searchUser(receiverPhone);
-
-//        if (receiver == null) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Receiver not found");
+//    @PostMapping("/requestSplit")
+//    public String requestMoney(
+//            @RequestBody Map<String, Object> payload,
+//            @AuthenticationPrincipal CustomUserDetails userDetails,
+//            Model model
+//    ) {
+//        System.out.println("requestMoney payload= ");
+//        String receiverPhone = (String) payload.get("receiverPhone");
+//        double amount = Double.parseDouble(payload.get("amount").toString());
+//
+//        String senderUpiId = userService.getupiId(userDetails.getEmail());
+//        User receiver = upiService.searchUser(receiverPhone);
+//
+////        if (receiver == null) {
+////            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Receiver not found");
+////        }
+//        String email = receiver.getEmail();
+//        System.out.println("RecieverEmail= "+email);
+//        User user = userService.findUserByEmail(email);
+//        if (user == null) {
+//            System.out.println("user not found");
 //        }
-        String email = receiver.getEmail();
-        System.out.println("RecieverEmail= "+email);
-        User user = userService.findUserByEmail(email);
-        if (user == null) {
-            System.out.println("user not found");
-        }
-
-
-
-
-        notificationService.createNotification(
-                user.getId(),
-                userDetails.getUserId(),
-                senderUpiId,
-                userDetails.getUpiId(),
-                amount
-        );
-        model.addAttribute("message", "Money request sent successfully");
-        return "redirect:/dashboard";
-    }
+//
+//
+//
+//
+//        notificationService.createNotification(
+//                user.getId(),
+//                userDetails.getUserId(),
+//                senderUpiId,
+//                userDetails.getUpiId(),
+//                amount
+//        );
+//        model.addAttribute("message", "Money request sent successfully");
+//        return "redirect:/dashboard";
+//    }
 
 
 
@@ -369,13 +369,14 @@ public String transactionForm(
             return "checkBalance";
         }
     }
-@GetMapping("/generateQr")
-public void generateQr(@AuthenticationPrincipal CustomUserDetails userDetails, HttpServletResponse response) throws WriterException, IOException {
-    String upiId = userDetails.getUpiId();
-    QRCodeWriter qrCodeWriter = new QRCodeWriter();
-    BitMatrix bitMatrix = qrCodeWriter.encode(upiId, BarcodeFormat.QR_CODE, 200, 200);
-    response.setContentType("image/png");
-    MatrixToImageWriter.writeToStream(bitMatrix, "PNG", response.getOutputStream());
-}
+    @GetMapping("/generateQr")
+    public void generateQr(@AuthenticationPrincipal CustomUserDetails userDetails, HttpServletResponse response) throws WriterException, IOException {
+        String upiId = userDetails.getUpiId();
+        String upiUrl = "upi://pay?pa=" + upiId; // Construct UPI payment URL
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = qrCodeWriter.encode(upiUrl, BarcodeFormat.QR_CODE, 200, 200); // Encode UPI URL
+        response.setContentType("image/png");
+        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", response.getOutputStream());
+    }
 
 }

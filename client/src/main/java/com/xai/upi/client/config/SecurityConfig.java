@@ -39,13 +39,13 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/css/**"),
                                 new AntPathRequestMatcher("/js/**"),
                                 new AntPathRequestMatcher("/images/**"),
-                                new AntPathRequestMatcher("/transaction/requestSplit")
+                                new AntPathRequestMatcher("/transaction/splitBill","POST")
                         ).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/ipc/**")).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(new AntPathRequestMatcher("/transaction/requestSplit", "POST"))
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/transaction/splitBill", "POST"))
                 )
                 .formLogin(form -> form
                         .loginPage("/auth/login")

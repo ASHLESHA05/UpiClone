@@ -69,7 +69,6 @@ public class ClientController {
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         String userId = userDetails.getUserId();
-        System.out.println("UserId = " + userId);
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         String accountNumber = "N/A";
         Double balance = 0.0;
@@ -84,6 +83,11 @@ public class ClientController {
 
         String upiId = upiService.getUpiId(user.getBankName(), user.getEmail(), user.getPhone());
         List<User> familyMembers = upiService.getFamilyMembers(userId);
+        // Enrich family members with UPI IDs
+        for (User member : familyMembers) {
+            String memberUpiId = upiService.getUpiId(member.getBankName(), member.getEmail(), member.getPhone());
+            member.setUpiId(memberUpiId); // Assuming User has a setUpiId method; add if missing
+        }
         List<User> friends = upiService.getFriends(userId);
         List<Notification> notifications = notificationService.getPendingNotifications(userId);
         List<TransactionDTO> transactions = upiService.getTransactions(upiId);
@@ -98,7 +102,6 @@ public class ClientController {
         model.addAttribute("friends", friends);
         model.addAttribute("qrCode", upiService.generateQrCode(upiId));
         model.addAttribute("notifications", notifications);
-
         model.addAttribute("pendingRequests", notificationService.getPendingRequestsByUser(user.getId()));
 
         return "dashboard";

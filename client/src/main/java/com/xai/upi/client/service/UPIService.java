@@ -1,4 +1,6 @@
 package com.xai.upi.client.service;
+import java.io.IOException;
+
 
 import com.xai.upi.client.model.Account;
 import com.xai.upi.client.model.SetUpiPinRequest;
@@ -321,15 +323,16 @@ public class UPIService {
     }
 
     public String generateQrCode(String upiId) {
+        String upiUrl = "upi://pay?pa=" + upiId; // Construct UPI payment URL
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
         try {
-            String upiUrl = "upi://pay?pa=" + upiId + "&pn=Recipient&am=0.00&cu=INR";
-            QRCodeWriter qrCodeWriter = new QRCodeWriter();
             BitMatrix bitMatrix = qrCodeWriter.encode(upiUrl, BarcodeFormat.QR_CODE, 200, 200);
             ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
             MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
-            return Base64.getEncoder().encodeToString(pngOutputStream.toByteArray());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to generate QR code", e);
+            byte[] pngData = pngOutputStream.toByteArray();
+            return Base64.getEncoder().encodeToString(pngData);
+        } catch (WriterException | IOException e) {
+            throw new RuntimeException("Error generating QR code", e);
         }
     }
 }
