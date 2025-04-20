@@ -1,14 +1,21 @@
 version: '3.8'
 
 services:
+  maven-builder:
+    image: maven:3.8.8-eclipse-temurin-11
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: ["mvn", "clean", "install"]
+    restart: "no"
+
   bank-service:
     build: ./bank-service
     ports:
       - "8081:8081"
     depends_on:
       - mongodb-bank
-    networks:
-      - upi-network
+      - maven-builder
     restart: unless-stopped
 
   npci-service:
@@ -17,8 +24,7 @@ services:
       - "8082:8082"
     depends_on:
       - mongodb-npci
-    networks:
-      - upi-network
+      - maven-builder
     restart: unless-stopped
 
   client:
@@ -29,12 +35,10 @@ services:
       - bank-service
       - npci-service
       - mongodb-client
-    networks:
-      - upi-network
-    restart: unless-stopped
+      - maven-builder
     env_file:
       - .env
-
+    restart: unless-stopped
 
   mongodb-bank:
     image: mongo:latest
@@ -42,8 +46,6 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_bank_data:/data/db
-    networks:
-      - upi-network
     restart: unless-stopped
 
   mongodb-npci:
@@ -52,8 +54,6 @@ services:
       - "27018:27017"
     volumes:
       - mongodb_npci_data:/data/db
-    networks:
-      - upi-network
     restart: unless-stopped
 
   mongodb-client:
@@ -62,14 +62,9 @@ services:
       - "27019:27017"
     volumes:
       - mongodb_client_data:/data/db
-    networks:
-      - upi-network
     restart: unless-stopped
 
 volumes:
   mongodb_bank_data:
   mongodb_npci_data:
   mongodb_client_data:
-
-networks:
-  upi-network:
