@@ -1,4 +1,5 @@
 package com.xai.upi.npci.controller;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.xai.upi.npci.model.Transaction;
 import com.xai.upi.npci.model.User;
@@ -29,8 +30,14 @@ public class NPCIController {
     @Autowired
     private RestTemplate restTemplate;
 
-    private static final String INTERNAL_TOKEN = "uyguyfgbsvbcug76t7632$%@^@t";
-    private static final String BANK_BASE_URL = "http://localhost:8081/api";
+    @Value("${bank.base-url}")
+    private String BANK_BASE_URL;
+
+    @Value("${upi.internal-token}")
+    private String INTERNAL_TOKEN;
+
+//    private static final String INTERNAL_TOKEN = internalToken;
+//    private static final String BANK_BASE_URL = baseUrl;
 
     private HttpHeaders getHeaders() {
         HttpHeaders headers = new HttpHeaders();

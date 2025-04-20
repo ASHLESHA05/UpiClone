@@ -59,6 +59,16 @@ public class UPIService {
     @Value("${twilio.phoneNumber}")
     private String twilioPhoneNumber;
 
+    @Value("${upi.base-url}")
+    private String BASE_URL;
+
+    @Value("${upi.internal-token}")
+    private String INTERNAL_TOKEN;
+
+//    private static final String INTERNAL_TOKEN = internalToken;
+//    private static final String BASE_URL = baseUrl;
+
+
     @Autowired
 
     public UPIService(RestTemplate restTemplate, UserStatusService userStatusService) {
@@ -68,8 +78,7 @@ public class UPIService {
 
     private temSave tempSave;
 
-    private static final String INTERNAL_TOKEN = "uyguyfgbsvbcug76t7632$%@^@t";
-    private static final String BASE_URL = "http://localhost:8082/api";
+
 
     private HttpHeaders getHeaders() {
         HttpHeaders headers = new HttpHeaders();

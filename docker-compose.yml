@@ -1,37 +1,40 @@
 version: '3.8'
 
 services:
-  # bank-service:
-  #   build: ./bank-service
-  #   ports:
-  #     - "8081:8081"
-  #   depends_on:
-  #     - mongodb-bank
-  #   networks:
-  #     - upi-network
-  #   restart: unless-stopped
+  bank-service:
+    build: ./bank-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb-bank
+    networks:
+      - upi-network
+    restart: unless-stopped
 
-  # npci-service:
-  #   build: ./npci-service
-  #   ports:
-  #     - "8082:8082"
-  #   depends_on:
-  #     - mongodb-npci
-  #   networks:
-  #     - upi-network
-  #   restart: unless-stopped
+  npci-service:
+    build: ./npci-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mongodb-npci
+    networks:
+      - upi-network
+    restart: unless-stopped
 
-  # client:
-  #   build: ./client
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     - bank-service
-  #     - npci-service
-  #     - mongodb-client
-  #   networks:
-  #     - upi-network
-  #   restart: unless-stopped
+  client:
+    build: ./client
+    ports:
+      - "8080:8080"
+    depends_on:
+      - bank-service
+      - npci-service
+      - mongodb-client
+    networks:
+      - upi-network
+    restart: unless-stopped
+    env_file:
+      - .env
+
 
   mongodb-bank:
     image: mongo:latest

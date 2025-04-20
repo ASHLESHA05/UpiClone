@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class UserService implements UserStatusService {
@@ -24,8 +25,16 @@ public class UserService implements UserStatusService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private static final String INTERNAL_TOKEN = "uyguyfgbsvbcug76t7632$%@^@t";
-    private static final String BASE_URL = "http://localhost:8082/api";
+    @Value("${upi.base-url}")
+    private String BASE_URL;
+
+    @Value("${upi.internal-token}")
+    private String INTERNAL_TOKEN;
+
+//    private static final String INTERNAL_TOKEN = internalToken;
+//    private static final String BASE_URL = baseUrl;
+
+
 
     private HttpHeaders getHeaders() {
         HttpHeaders headers = new HttpHeaders();
