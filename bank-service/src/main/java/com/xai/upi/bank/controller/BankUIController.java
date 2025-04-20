@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
 
 @Controller
 public class BankUIController {
@@ -59,6 +60,8 @@ public class BankUIController {
         User user = userDetails.getUser();
         model.addAttribute("user", user);
         model.addAttribute("bank", bank);
+        model.addAttribute("notifications", new ArrayList<>());
+
 
         if ("ADMIN".equals(user.getRole())) {
             List<Account> accounts = accountService.findAllByBankName(bank);
