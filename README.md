@@ -86,7 +86,20 @@ The current implementation is configured to run on `localhost`. Follow these ste
    git clone https://github.com/ASHLESHA05/UpiClone.git
    cd UpiClone
    ```
+---
+Note: add .env in root dir having following things
 
+Goto https://www.twilio.com
+
+set up your account and get the account id, auth token and number
+
+
+```bash
+TWILIO_ACCOUNT_SID=<<Twilio account id>>
+TWILIO_AUTH_TOKEN=<<Auth token>>
+TWILIO_PHONE_NUMBER=<<Twilio phone>>
+
+```
 2. **Configure Database**
 
     - Install MySQL or PostgreSQL locally, or use H2 for testing.
