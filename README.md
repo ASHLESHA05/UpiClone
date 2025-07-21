@@ -388,16 +388,4 @@ The project utilizes several design patterns to solve common problems:
 
 - Add support for OAuth2 or UPI QR code scanning.
 - Implement real-time notifications using WebSockets.
-- Integrate with external payment gateways for production use.
 - Enhance UI with a modern frontend framework (e.g., React, Angular).
-
-## Contributors
-
-- &lt;input: Team Member 1 Name&gt; - Client service and UI
-- &lt;input: Team Member 2 Name&gt; - NPCI service and transaction routing
-- &lt;input: Team Member 3 Name&gt; - Bank service and account management
-- &lt;input: Team Member 4 Name&gt; - Database design and security
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
