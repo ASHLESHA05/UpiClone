@@ -66,7 +66,7 @@
 <div class="bank-card">
     <img src="https://ucarecdn.com/a4a0fb0e-b254-466d-a7d0-59a4e9092227/bank.jpeg" alt="Bank Logo" class="bank-logo">
     <h1>Welcome to Banking Portal</h1>
-    <form id="bankForm">
+    <form id="bankForm" method="get">
         <div class="form-group">
             <select class="custom-select" name="bank" id="bankSelect" required>
                 <option value="" disabled selected>Select Your Bank</option>
@@ -77,17 +77,20 @@
         </div>
         <button type="submit" class="btn btn-proceed">Proceed</button>
     </form>
-</div>
-<script>
-    document.getElementById('bankForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        var bank = document.getElementById('bankSelect').value;
-        console.log("bank: ",bank)
-        if (bank) {
-            window.location.href = '/' + bank;
-        }
 
-    });
-</script>
+    <script>
+        document.getElementById('bankForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const bank = document.getElementById('bankSelect').value;
+            if (bank) {
+                // Set form action dynamically with path variable
+                this.action = '/' + bank;
+                this.submit(); // now it goes to /sbb, /camera, etc.
+            }
+        });
+    </script>
+
+</div>
+
 </body>
 </html>
