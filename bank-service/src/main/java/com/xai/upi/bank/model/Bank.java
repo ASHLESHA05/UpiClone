@@ -1,14 +1,19 @@
 package com.xai.upi.bank.model;
 
-import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.*;
+import lombok.*;
 
+@Entity
+@Table(name = "banks")
 @Data
-@Document(collection = "banks")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Bank {
+
     @Id
-    private String id; // e.g., "sbi", "canara" - used in URL path
-    private String fullName; // e.g., "State Bank of India"
-    private String symbolUrl; // URL to the bank's logo
+    private String id; // e.g., sbi, canara
+
+    private String fullName; // State Bank of India
+
+    private String symbolUrl; // URL of logo
 }

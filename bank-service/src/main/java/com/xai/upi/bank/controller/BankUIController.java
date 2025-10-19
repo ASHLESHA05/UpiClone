@@ -37,12 +37,14 @@ public class BankUIController {
     @GetMapping("/{bank}")
     public String bankHome(@PathVariable("bank") String bank, Model model) {
         model.addAttribute("bank", bank);
+        System.out.println("Rendering home page for bank: " + bank);
         return "bank_home";
     }
 
     @GetMapping("/{bank}/signup")
     public String signupForm(@PathVariable("bank") String bank, Model model) {
         model.addAttribute("bank", bank);
+        System.out.println("Rendering signup form for bank: " + bank);
         return "signup";
     }
 
@@ -53,7 +55,7 @@ public class BankUIController {
     }
 
     @GetMapping("/{bank}/dashboard")
-    @PreAuthorize("#bank == authentication.principal.bank")
+    @PreAuthorize("#bank.toLowerCase() == authentication.principal.bank")
     public String dashboard(@PathVariable("bank") String bank, Model model) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -62,10 +64,13 @@ public class BankUIController {
         model.addAttribute("bank", bank);
         model.addAttribute("notifications", new ArrayList<>());
 
+        List<Account> accounts = accountService.findByUserIdAndBankName(user.getId(), bank);
+        Optional<Account> firstAccount = accounts.stream().findFirst();
+        model.addAttribute("hasAccount", firstAccount.isPresent());
 
         if ("ADMIN".equals(user.getRole())) {
-            List<Account> accounts = accountService.findAllByBankName(bank);
-            model.addAttribute("accounts", accounts);
+            List<Account> allAccounts = accountService.findAllByBankName(bank);
+            model.addAttribute("accounts", allAccounts);
 
             LocalDate today = LocalDate.now();
             List<Transaction> dailyTransactions = transactionService.findByBankAndDate(bank, today);
@@ -86,18 +91,14 @@ public class BankUIController {
             model.addAttribute("creditCount", creditCount);
             model.addAttribute("debitCount", debitCount);
 
-            //Dosent get the counts update it ..
             System.out.println("creditCount: " + creditCount);
             System.out.println("debitCount: " + debitCount);
 
-            double totalBalance = accounts.stream().mapToDouble(Account::getBalance).sum();
+            double totalBalance = allAccounts.stream().mapToDouble(Account::getBalance).sum();
             model.addAttribute("totalBalance", totalBalance);
 
             logger.info("Dashboard data - Bank: {}, Daily Transactions: {}, Credit Count: {}, Debit Count: {}, Total Debits: {}, Total Credits: {}, Total Balance: {}",
                     bank, dailyTransactions.size(), creditCount, debitCount, totalDebits, totalCredits, totalBalance);
-        } else {
-            Optional<Account> account = accountService.findByUserIdAndBankName(user.getId(), bank);
-            model.addAttribute("hasAccount", account.isPresent());
         }
 
         return "dashboard";
@@ -111,19 +112,21 @@ public class BankUIController {
     }
 
     @GetMapping("/{bank}/accounts")
-    @PreAuthorize("#bank == authentication.principal.bank")
+    @PreAuthorize("#bank.toLowerCase() == authentication.principal.bank")
     public String accounts(@PathVariable("bank") String bank, Model model) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
         String role = userDetails.getUser().getRole();
 
+        List<Account> accounts;
         if ("ADMIN".equals(role)) {
-            List<Account> accounts = accountService.findAllByBankName(bank);
-            model.addAttribute("accounts", accounts);
+            accounts = accountService.findAllByBankName(bank);
         } else {
-            Optional<Account> account = accountService.findByUserIdAndBankName(userDetails.getUser().getId(), bank);
-            model.addAttribute("account", account.orElse(null));
+            accounts = accountService.findByUserIdAndBankName(userDetails.getUser().getId(), bank);
+            Optional<Account> accountOpt = accounts.stream().findFirst();
+            model.addAttribute("account", accountOpt.orElse(null));
         }
+        model.addAttribute("accounts", accounts);
 
         model.addAttribute("bank", bank);
         model.addAttribute("role", role);
@@ -131,7 +134,7 @@ public class BankUIController {
     }
 
     @GetMapping("/{bank}/account/{accountId}")
-    @PreAuthorize("#bank == authentication.principal.bank")
+    @PreAuthorize("#bank.toLowerCase() == authentication.principal.bank")
     public String accountDetails(@PathVariable("bank") String bank, @PathVariable("accountId") String accountId, Model model) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -150,14 +153,14 @@ public class BankUIController {
     }
 
     @GetMapping("/{bank}/createAccount")
-    @PreAuthorize("#bank == authentication.principal.bank")
+    @PreAuthorize("#bank.toLowerCase() == authentication.principal.bank")
     public String createAccountForm(@PathVariable("bank") String bank, Model model) {
         model.addAttribute("bank", bank);
         return "create_account";
     }
 
     @PostMapping("/{bank}/createAccount")
-    @PreAuthorize("#bank == authentication.principal.bank")
+    @PreAuthorize("#bank.toLowerCase() == authentication.principal.bank")
     public String createAccount(@PathVariable("bank") String bank,
                                 @RequestParam double initialAmount,
                                 @RequestParam String accountType,
@@ -169,7 +172,7 @@ public class BankUIController {
     }
 
     @GetMapping("/{bank}/generateAtmCard/{accountId}")
-    @PreAuthorize("#bank == authentication.principal.bank")
+    @PreAuthorize("#bank.toLowerCase() == authentication.principal.bank")
     public String generateAtmCard(@PathVariable("bank") String bank, @PathVariable("accountId") String accountId) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -180,7 +183,7 @@ public class BankUIController {
     }
 
     @GetMapping("/{bank}/profile")
-    @PreAuthorize("#bank == authentication.principal.bank")
+    @PreAuthorize("#bank.toLowerCase() == authentication.principal.bank")
     public String profile(@PathVariable("bank") String bank, Model model) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -190,7 +193,7 @@ public class BankUIController {
     }
 
     @PostMapping("/{bank}/profile")
-    @PreAuthorize("#bank == authentication.principal.bank")
+    @PreAuthorize("#bank.toLowerCase() == authentication.principal.bank")
     public String updateProfile(@PathVariable("bank") String bank, @RequestParam String name, @RequestParam String phone) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -199,22 +202,29 @@ public class BankUIController {
     }
 
     @GetMapping("/{bank}/setPin")
-    @PreAuthorize("#bank == authentication.principal.bank")
+    @PreAuthorize("#bank.toLowerCase() == authentication.principal.bank")
     public String setPinForm(@PathVariable("bank") String bank, Model model) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
-        Optional<Account> account = accountService.findByUserIdAndBankName(userDetails.getUser().getId(), bank);
-        model.addAttribute("account", account.orElse(null));
+        List<Account> accounts = accountService.findByUserIdAndBankName(userDetails.getUser().getId(), bank);
+        Optional<Account> firstAccount = accounts.stream().findFirst();
+        model.addAttribute("account", firstAccount.orElse(null));
+        model.addAttribute("accountNumber", accounts.get(0).getAccountNumber());
         model.addAttribute("bank", bank);
         return "set_pin";
     }
 
     @PostMapping("/{bank}/setPin")
-    @PreAuthorize("#bank == authentication.principal.bank")
-    public String setPin(@PathVariable("bank") String bank, @RequestParam String pin) {
+    @PreAuthorize("#bank.toLowerCase() == authentication.principal.bank")
+    public String setPin(@PathVariable("bank") String bank, @RequestParam String accountNumber, @RequestParam String pin) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
-        accountService.setPin(userDetails.getUser().getId(), bank, pin);
+        // Verify ownership
+        Account account = accountService.findByAccountNumberAndBankName(accountNumber,bank);
+        if (!account.getUserId().equals(userDetails.getUser().getId())) {
+            return "redirect:/" + bank + "/setPin?error=unauthorized";
+        }
+        accountService.setPin(accountNumber, bank,pin);
         return "redirect:/" + bank + "/accounts";
     }
 }

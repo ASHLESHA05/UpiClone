@@ -8,13 +8,8 @@ import com.xai.upi.bank.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Collections;
 
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 @Service
 public class AccountService {
@@ -47,7 +42,7 @@ public class AccountService {
         }
         account.setBalance(account.getBalance() - amount);
         accountRepository.save(account);
-        Transaction transaction = new Transaction(accountId, "DEBIT", -amount);
+        Transaction transaction = new Transaction(accountId, "DEBIT", amount);
         transactionRepository.save(transaction);
     }
 
@@ -56,18 +51,28 @@ public class AccountService {
                 .orElseThrow(() -> new RuntimeException("Account not found"));
     }
 
-    public Optional<Account> findByUserIdAndBankName(String userId, String bankName) {
-        return accountRepository.findByUserIdAndBankName(userId, bankName);
+    // Convert repository's Optional<Account> to List<Account> for callers that expect lists
+    public List<Account> findByUserIdAndBankName(String userId, String bankName) {
+        List<Account> accounts = accountRepository.findByUserIdAndBankName(userId, bankName);
+        return accounts != null ? accounts : Collections.emptyList();
     }
 
-    public void setPin(String userId, String bankName, String pin) {
-        Account account = findByUserIdAndBankName(userId, bankName)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-        account.setPin(pin);
+
+    public Optional<Account> findFirstByUserIdAndBankName(String userId, String bankName) {
+        return findByUserIdAndBankName(userId, bankName).stream().findFirst();
+    }
+
+    public void setPin(String accountNumber,String bank, String pin) {
+        Account account = findByAccountNumberAndBankName(accountNumber,bank);
+        account.setPin(pin); // Hash if needed, e.g., using PasswordEncoder
         accountRepository.save(account);
     }
 
     public void createAccount(String bankName, String userId, double initialAmount, String accountType, boolean generateAtmCard) {
+        // Check if user already has an account
+        if (!findByUserIdAndBankName(userId, bankName).isEmpty()) {
+            throw new RuntimeException("User already has an account in this bank");
+        }
         Account account = new Account();
         account.setBankName(bankName);
         account.setUserId(userId);
@@ -91,7 +96,7 @@ public class AccountService {
 
     public void generateAtmCard(String accountId) {
         Account account = findById(accountId);
-        if (account.getAtmCardNumber() == null) {
+        if (account.getAtmCardNumber() == null || account.getAtmCardNumber().isEmpty()) {
             account.setAtmCardNumber(generateAtmCardNumber());
             account.setCvv(generateCvv());
             accountRepository.save(account);
@@ -122,10 +127,8 @@ public class AccountService {
         List<String> userIds = userService.findUsersId(phone);
         List<Account> result = new ArrayList<>();
         for (String userId : userIds) {
-            Optional<Account> acc = accountRepository.findByUserIdAndBankName(userId, bankName);
-            if (acc.isPresent()) {
-                result.add(acc.get());
-            }
+            List<Account> accs = findByUserIdAndBankName(userId, bankName);
+            result.addAll(accs);
         }
         return result;
     }
@@ -135,14 +138,13 @@ public class AccountService {
 
         if (res.isPresent()) {
             String userId = res.get().getId();
-
-            return accountRepository.findByUserIdAndBankName(userId, bankName)
-                    .map(Collections::singletonList)
-                    .orElse(Collections.emptyList());
+            return findByUserIdAndBankName(userId, bankName);
         }
 
         return Collections.emptyList();
     }
-
-
+    public Account findByAccountNumberAndBankName(String accountNumber, String bankName) {
+        return accountRepository.findByBankNameAndAccountNumber(bankName, accountNumber)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+    }
 }

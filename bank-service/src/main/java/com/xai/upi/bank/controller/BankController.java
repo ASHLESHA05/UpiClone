@@ -1,7 +1,9 @@
 package com.xai.upi.bank.controller;
 
 import com.xai.upi.bank.model.Account;
+import com.xai.upi.bank.model.Transaction;
 import com.xai.upi.bank.repository.AccountRepository;
+import com.xai.upi.bank.repository.TransactionRepository;
 import com.xai.upi.bank.services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,9 @@ public class BankController {
 
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     @GetMapping("/ipc/account/{id}")
     public ResponseEntity<?> getAccount(@PathVariable String id) {
@@ -43,6 +48,9 @@ public class BankController {
             account.setUserId(userId);
             Account savedAccount = accountRepository.save(account);
             System.out.println("Created account: " + savedAccount.getId() + " for user: " + userId);
+            // Add initial credit transaction
+            Transaction initialTrans = new Transaction(savedAccount.getId(), "CREDIT", 1000.0);
+            transactionRepository.save(initialTrans);
             return ResponseEntity.ok(savedAccount);
         } catch (Exception e) {
             System.out.println("\n\n=========== Error creating bank account ===========\n\n");
@@ -62,8 +70,6 @@ public class BankController {
             return ResponseEntity.badRequest().body("Debit amount must be positive.");
         }
 
-
-        //Find the account using the email , hence get the user id (#id use it to get account id)
         Optional<Account> accountOptional = accountRepository.findByBankNameAndAccountNumber(bankName,accountNumber);
         if (!accountOptional.isPresent()) {
             System.out.println("Account not found for ID (Debit): " + accountId);
@@ -75,6 +81,8 @@ public class BankController {
             account.setBalance(account.getBalance() - amount);
             try {
                 accountRepository.save(account);
+                Transaction trans = new Transaction(account.getId(), "DEBIT", amount);
+                transactionRepository.save(trans);
                 System.out.println("Debited " + amount + " from account: " + accountId + ". New balance: " + account.getBalance());
                 return ResponseEntity.ok("Debited successfully. New balance: " + account.getBalance());
             } catch (Exception e) {
@@ -108,6 +116,8 @@ public class BankController {
         account.setBalance(account.getBalance() + amount);
         try {
             accountRepository.save(account);
+            Transaction trans = new Transaction(account.getId(), "CREDIT", amount);
+            transactionRepository.save(trans);
             System.out.println("Credited " + amount + " to account: " + accountId + ". New balance: " + account.getBalance());
             return ResponseEntity.ok("Credited successfully. New balance: " + account.getBalance());
         } catch (Exception e) {
@@ -132,7 +142,6 @@ public class BankController {
         return ResponseEntity.ok(accounts);
     }
 
-
     @PostMapping("/ipc/getCardData")
     public ResponseEntity<List<Account>> getCardData(@RequestBody Map<String, String> request) {
         String email = request.get("email");
@@ -145,5 +154,4 @@ public class BankController {
         System.out.println("Cards" + cards);
         return ResponseEntity.ok(cards);
     }
-
 }

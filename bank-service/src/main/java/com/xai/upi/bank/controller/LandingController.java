@@ -10,6 +10,4 @@ public class LandingController {
     public String landing() {
         return "landing";
     }
-
-
 }

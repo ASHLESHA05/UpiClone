@@ -1,10 +1,10 @@
+// src/main/java/com/xai/upi/bank/filters/FonltHeaderFilter.java
 package com.xai.upi.bank.filters;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -19,7 +19,7 @@ public class FonltHeaderFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        if (path.startsWith("/api/ipc/")) {
+        if (path != null && path.startsWith("/api/ipc/")) {
             String fonlt = request.getHeader("fonlt");
             if (fonlt == null || fonlt.isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

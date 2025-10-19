@@ -11,12 +11,14 @@
 <div class="container mt-3">
     <h2>Set ATM PIN</h2>
     <form th:action="@{'/' + ${bank} + '/setPin'}" method="post" class="card p-4">
+        <input type="hidden" name="accountNumber" th:value="${accountNumber}" />
         <div class="form-group">
             <label>PIN</label>
             <input type="password" name="pin" class="form-control" required>
         </div>
         <button type="submit" class="btn btn-dark">Set PIN</button>
     </form>
+
 </div>
 </body>
 </html>

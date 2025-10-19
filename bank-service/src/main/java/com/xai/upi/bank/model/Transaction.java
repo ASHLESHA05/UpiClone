@@ -1,21 +1,29 @@
 package com.xai.upi.bank.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
-@Document
+@Entity
+@Table(name = "transactions")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Transaction {
+
     @Id
-    private String id; // MongoDB uses String for IDs by convention
+    @GeneratedValue(generator = "uuid2")
+    @org.hibernate.annotations.GenericGenerator(name = "uuid2", strategy = "uuid2")
+    private String id;
 
-    private String accountId; // Reference to Account document by ID
-    private String type; // "CREDIT" or "DEBIT"
-    private double amount; // Positive for credit, negative for debit
-    private LocalDateTime timestamp;
+    private String type; // CREDIT or DEBIT
 
-    // Constructors
-    public Transaction() {}
+    private double amount;
+
+    private LocalDateTime timestamp = LocalDateTime.now();
+
+    private String accountId;
 
     public Transaction(String accountId, String type, double amount) {
         this.accountId = accountId;
@@ -23,22 +31,4 @@ public class Transaction {
         this.amount = amount;
         this.timestamp = LocalDateTime.now();
     }
-
-
-
-
-    // Getters and setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-    public String getAccountId() { return accountId; }
-    public void setAccountId(String accountId) { this.accountId = accountId; }
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-    public double getAmount() { return amount; }
-    public void setAmount(double amount) { this.amount = amount; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
-
-
-
 }
