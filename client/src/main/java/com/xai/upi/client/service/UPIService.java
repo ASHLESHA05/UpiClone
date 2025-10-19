@@ -3,8 +3,8 @@ import java.io.IOException;
 
 
 import com.xai.upi.client.model.Account;
-import com.xai.upi.client.model.SetUpiPinRequest;
-import com.xai.upi.client.model.TransactionRequest;
+import com.mypay.upi.npci.model.SetUpiPinRequest;
+import com.mypay.upi.npci.model.TransactionRequest;
 import com.xai.upi.client.model.User;
 import com.xai.upi.client.model.temSave;
 import com.xai.upi.client.model.TransactionDTO;
@@ -29,7 +29,6 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;

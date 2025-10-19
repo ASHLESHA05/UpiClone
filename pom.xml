@@ -5,7 +5,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.xai.upi</groupId>
+    <groupId>com.mypay.upi</groupId>
     <artifactId>upi-clone</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -15,6 +15,7 @@
         <module>bank-service</module>
         <module>npci-service</module>
         <module>client</module>
+        <module>npci-service/user-service</module>
     </modules>
 
     <properties>
