@@ -1,6 +1,6 @@
 package com.xai.upi.client.controller;
 
-import com.xai.upi.client.model.SignUpRequest;
+import com.mypay.upi.npci.model.SignUpRequest;
 import com.xai.upi.client.model.User;
 import com.xai.upi.client.repository.UserRepository;
 import com.xai.upi.client.service.UserService;

@@ -5,7 +5,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import com.xai.upi.client.model.TransactionRequest;
+import com.mypay.upi.npci.model.TransactionRequest;
 import com.xai.upi.client.security.CustomUserDetails;
 import com.xai.upi.client.model.User;
 import com.xai.upi.client.model.Notification;
